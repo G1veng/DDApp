@@ -26,5 +26,6 @@ namespace DDApp.DAL
             => optionsBuilder.UseNpgsql(b => b.MigrationsAssembly("DDApp.API"));
 
         public DbSet<Entites.User> Users => Set<Entites.User>();
+        public DbSet<Entites.UserSession> UserSessions => Set<Entites.UserSession>();
     }
 }

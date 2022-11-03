@@ -15,7 +15,7 @@ internal class Program {
         var authConfig = authSection.Get<DDApp.API.Configs.AuthConfig>();
 
 
-        builder.Services.Configure<DDApp.API.Configs.AuthConfig>(authSection);
+        builder.Services.Configure  <DDApp.API.Configs.AuthConfig>(authSection);
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -112,6 +112,8 @@ internal class Program {
         app.UseAuthentication();
 
         app.UseAuthorization();
+
+        app.UseTokenValidator();
 
         app.MapControllers();
 

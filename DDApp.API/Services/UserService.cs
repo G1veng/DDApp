@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using DDApp.API.Configs;
+using DDApp.DAL.Entites;
 
 namespace DDApp.API.Services
 {
@@ -75,17 +76,22 @@ namespace DDApp.API.Services
             return user;
         }
 
-        private TokenModel GenerateTokens(DDApp.DAL.Entites.User user)
+        private TokenModel GenerateTokens(DAL.Entites.UserSession session)
         {
             var dtNow = DateTime.Now;
+            if(session.User == null)
+            {
+                throw new Exception("Magic");
+            }
 
             var jwt = new JwtSecurityToken(
                 issuer: _config.Issuer,
                 audience: _config.Audience,
                 notBefore: dtNow,
                 claims: new Claim[] {
-                new Claim("id", user.Id.ToString()),
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Name),
+                new Claim("id", session.User.Id.ToString()),
+                new Claim("sessionId", session.Id.ToString()),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, session.User.Name),
             },
                 expires: DateTime.Now.AddMinutes(_config.LifeTime),
                 signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
@@ -96,7 +102,7 @@ namespace DDApp.API.Services
             var refresh = new JwtSecurityToken(
                 notBefore: dtNow,
                 claims: new Claim[] {
-                new Claim("id", user.Id.ToString()),
+                new Claim("refreshToken", session.RefreshToken.ToString()),
             },
                 expires: DateTime.Now.AddHours(_config.LifeTime),
                 signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
@@ -112,7 +118,41 @@ namespace DDApp.API.Services
         {
             var user = await GetByCredential(login, password);
 
-            return GenerateTokens(user);
+            var session = await _context.UserSessions.AddAsync(new DAL.Entites.UserSession 
+            {
+                User = user,
+                RefreshToken = Guid.NewGuid(),
+                Created = DateTime.UtcNow,
+                Id = new Guid()
+            });
+
+            await _context.SaveChangesAsync();
+
+            return GenerateTokens(session.Entity);
+        }
+
+        private async Task<UserSession> GetSessionByRefreshToken(Guid id)
+        {
+            var session = await _context.UserSessions.Include(x => x.User).FirstOrDefaultAsync(x => x.RefreshToken == id);
+
+            if(session == null)
+            {
+                throw new Exception("Session is not found");
+            }
+
+            return session;
+        }
+
+        public async Task<UserSession> GetSessionById(Guid id)
+        {
+            var session = await _context.UserSessions.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(session == null)
+            {
+                throw new Exception("Session is not found");
+            }
+
+            return session;
         }
 
         public async Task<TokenModel> GetTokenByRefreshToken(string refreshToken)
@@ -135,12 +175,20 @@ namespace DDApp.API.Services
                 throw new SecurityTokenException("Invalid token");
             }
 
-            if(principal.Claims.FirstOrDefault(x => x.Type == "id")?.Value is String userIdString
-                && Guid.TryParse(userIdString, out var userId))
+            if(principal.Claims.FirstOrDefault(x => x.Type == "refreshToken")?.Value is String refreshTokenString
+                && Guid.TryParse(refreshTokenString, out var refreshTokenId))
             {
-                var user = await GetUserById(userId);
+                var session = await GetSessionByRefreshToken(refreshTokenId);
+                if (!session.IsActive)
+                {
+                    throw new Exception("session is not active");
+                }
 
-                return GenerateTokens(user);
+                session.RefreshToken = Guid.NewGuid();
+                await _context.SaveChangesAsync();
+
+
+                return GenerateTokens(session);
             }
             else
             {
