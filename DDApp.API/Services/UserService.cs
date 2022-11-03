@@ -24,6 +24,11 @@ namespace DDApp.API.Services
             _config = config.Value;
         }
 
+        public async Task<bool> CheckUserExist(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x => x.Email == email) == null ? false : true;
+        }
+
         public async Task CreateUser(CreateUserModel model)
         {
             var dbUser = _mapper.Map<DDApp.DAL.Entites.User>(model);

@@ -21,7 +21,12 @@ namespace DDApp.API.Controllers
         }
 
         [HttpPost]
-        public async Task CreateUser(CreateUserModel model) => await _userService.CreateUser(model);
+        public async Task CreateUser(CreateUserModel model) 
+        {
+            if (await _userService.CheckUserExist(model.Email))
+                throw new Exception("User is exist");
+            await _userService.CreateUser(model);
+        }
 
         [HttpGet]
         [Authorize]
