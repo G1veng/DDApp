@@ -26,7 +26,7 @@ namespace DDApp.API.Services
 
         public async Task<bool> CheckUserExist(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Email == email) == null ? false : true;
+            return await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower()) == null ? false : true;
         }
 
         public async Task CreateUser(CreateUserModel model)
