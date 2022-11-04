@@ -3,6 +3,7 @@ using System;
 using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DDApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20221104201535_AttachesWithAvatars")]
+    partial class AttachesWithAvatars
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,7 +55,7 @@ namespace DDApp.API.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Attaches", (string)null);
+                    b.ToTable("Attaches");
 
                     b.UseTptMappingStrategy();
                 });
@@ -89,7 +92,7 @@ namespace DDApp.API.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("DDApp.DAL.Entites.UserSession", b =>
@@ -114,7 +117,7 @@ namespace DDApp.API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSessions", (string)null);
+                    b.ToTable("UserSessions");
                 });
 
             modelBuilder.Entity("DDApp.DAL.Entites.Avatar", b =>

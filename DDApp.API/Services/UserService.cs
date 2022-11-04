@@ -30,6 +30,14 @@ namespace DDApp.API.Services
             return await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower()) == null ? false : true;
         }
 
+        public async Task<AttachModel> GetUserAvatar(Guid userId)
+        {
+            var user = await GetUserById(userId);
+            var attach = _mapper.Map<AttachModel>(user.Avatar);
+
+            return attach;
+        } 
+
         public async Task CreateUser(CreateUserModel model)
         {
             var dbUser = _mapper.Map<DDApp.DAL.Entites.User>(model);
@@ -37,9 +45,20 @@ namespace DDApp.API.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task Delete(Guid userId)
+        {
+            var user = await GetUserById(userId);
+
+            if(user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         private async Task<DDApp.DAL.Entites.User> GetUserById(Guid id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
             {
                 throw new Exception("User not found");
@@ -79,10 +98,6 @@ namespace DDApp.API.Services
         private TokenModel GenerateTokens(DAL.Entites.UserSession session)
         {
             var dtNow = DateTime.Now;
-            if(session.User == null)
-            {
-                throw new Exception("Magic");
-            }
 
             var jwt = new JwtSecurityToken(
                 issuer: _config.Issuer,

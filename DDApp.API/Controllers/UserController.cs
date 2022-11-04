@@ -14,10 +14,12 @@ namespace DDApp.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly DDApp.API.Services.UserService _userService;
+        private readonly DDApp.API.Services.AttachmentsService _attachmentsService;
 
-        public UserController(DDApp.API.Services.UserService userService)
+        public UserController(DDApp.API.Services.UserService userService, DDApp.API.Services.AttachmentsService attachmentsService)
         {
             _userService = userService;
+            _attachmentsService = attachmentsService;
         }
 
         [HttpPost]
@@ -26,6 +28,48 @@ namespace DDApp.API.Controllers
             if (await _userService.CheckUserExist(model.Email))
                 throw new Exception("User is exist");
             await _userService.CreateUser(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task AddAvatarToUser(MetadataModel model)
+        {
+            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (Guid.TryParse(userIdString, out var userId))
+            {
+                var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
+
+                if (!tempFi.Exists)
+                {
+                    throw new Exception("File not found");
+                }
+                else
+                {
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
+
+                    var destFi = new FileInfo(path);
+                    if (destFi.Directory != null && !destFi.Directory.Exists)
+                    {
+                        destFi.Directory.Create();
+                    }
+
+                    System.IO.File.Copy(tempFi.FullName, path, true);
+
+                    await _attachmentsService.AddAvatarToUser(userId, model, path);
+                }
+            }
+            else
+            {
+                throw new Exception("You are not authorized");
+            }
+        }
+
+        [HttpGet]
+        public async Task<FileResult> GetUserAvatar(Guid userId)
+        {
+            var attach = await _userService.GetUserAvatar(userId);
+
+            return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
         }
 
         [HttpGet]
@@ -37,6 +81,7 @@ namespace DDApp.API.Controllers
         public async Task<UserModel> GetCurrentUser() 
         {
             var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+
             if(Guid.TryParse(userIdString, out var userId))
             {
                 return await _userService.GetUser(userId);

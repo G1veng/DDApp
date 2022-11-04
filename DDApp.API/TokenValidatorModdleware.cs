@@ -25,7 +25,6 @@ namespace DDApp.API
                     isOk = false;
                     context.Response.Clear();
                     context.Response.StatusCode = 401;
-                    await context.Response.WriteAsync("Session is not active");
                 }
             }
 

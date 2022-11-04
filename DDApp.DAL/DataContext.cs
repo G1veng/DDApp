@@ -17,9 +17,13 @@ namespace DDApp.DAL
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .Entity<DDApp.DAL.Entites.User>()
+                .Entity<Entites.User>()
                 .HasIndex(f => f.Email)
                 .IsUnique();
+
+            modelBuilder.
+                Entity<Entites.Avatar>()
+                .ToTable(nameof(Avatars));
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -27,5 +31,7 @@ namespace DDApp.DAL
 
         public DbSet<Entites.User> Users => Set<Entites.User>();
         public DbSet<Entites.UserSession> UserSessions => Set<Entites.UserSession>();
+        public DbSet<Entites.Attach> Attaches => Set<Entites.Attach>();
+        public DbSet<Entites.Avatar> Avatars => Set<Entites.Avatar>();
     }
 }

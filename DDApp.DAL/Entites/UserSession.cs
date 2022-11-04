@@ -14,6 +14,6 @@ namespace DDApp.DAL.Entites
         public DateTimeOffset Created { get; set; }
         public bool IsActive { get; set; } = true;
 
-        public virtual User? User { get; set; }
+        public virtual User User { get; set; } = null!;
     }
 }

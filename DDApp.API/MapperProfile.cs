@@ -14,6 +14,8 @@ namespace DDApp.API
                 ;
 
             CreateMap<DDApp.DAL.Entites.User, Models.UserModel>();
+
+            CreateMap<DAL.Entites.Avatar, Models.AttachModel>();
         }
     }
 }
