@@ -8,6 +8,8 @@ namespace DDApp.DAL.Entites
 {
     public class Avatar : Attach
     {
-        public virtual User UserId { get; set; } = null!;
+        public Guid UserId { get; set; }
+
+        public virtual User User { get; set; } = null!;
     }
 }

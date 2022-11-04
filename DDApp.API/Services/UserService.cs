@@ -34,7 +34,7 @@ namespace DDApp.API.Services
         {
             var user = await GetUserById(userId);
             var attach = _mapper.Map<AttachModel>(user.Avatar);
-
+            
             return attach;
         } 
 

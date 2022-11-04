@@ -22,7 +22,7 @@ namespace DDApp.API.Services
             {
                 var avatar = new Avatar
                 {
-                    UserId = user,
+                    User = user,
                     Author = user,
                     MimeType = meta.MimeType,
                     FilePath = filePath,

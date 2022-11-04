@@ -3,6 +3,7 @@ using System;
 using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DDApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20221104230315_FixAvatarLinkInUser")]
+    partial class FixAvatarLinkInUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,41 +24,6 @@ namespace DDApp.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("DDApp.DAL.Entites.Attach", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("MimeType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("Size")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
-
-                    b.ToTable("Attaches");
-
-                    b.UseTptMappingStrategy();
-                });
 
             modelBuilder.Entity("DDApp.DAL.Entites.User", b =>
                 {
@@ -111,30 +79,6 @@ namespace DDApp.API.Migrations
                     b.ToTable("UserSessions");
                 });
 
-            modelBuilder.Entity("DDApp.DAL.Entites.Avatar", b =>
-                {
-                    b.HasBaseType("DDApp.DAL.Entites.Attach");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Avatars", (string)null);
-                });
-
-            modelBuilder.Entity("DDApp.DAL.Entites.Attach", b =>
-                {
-                    b.HasOne("DDApp.DAL.Entites.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-                });
-
             modelBuilder.Entity("DDApp.DAL.Entites.UserSession", b =>
                 {
                     b.HasOne("DDApp.DAL.Entites.User", "User")
@@ -146,27 +90,8 @@ namespace DDApp.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DDApp.DAL.Entites.Avatar", b =>
-                {
-                    b.HasOne("DDApp.DAL.Entites.Attach", null)
-                        .WithOne()
-                        .HasForeignKey("DDApp.DAL.Entites.Avatar", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DDApp.DAL.Entites.User", "User")
-                        .WithOne("Avatar")
-                        .HasForeignKey("DDApp.DAL.Entites.Avatar", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("DDApp.DAL.Entites.User", b =>
                 {
-                    b.Navigation("Avatar");
-
                     b.Navigation("Session");
                 });
 #pragma warning restore 612, 618
