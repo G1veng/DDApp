@@ -15,7 +15,7 @@ namespace DDApp.DAL.Entites
         public DateTimeOffset BirthDate { get; set; }
         public long? AvatarId { get; set; }
 
-        //public virtual Avatar? Avatar { get; set; }
+        public virtual Avatar? Avatar { get; set; }
         public virtual ICollection<UserSession>? Session { get; set; }
     }
 }
