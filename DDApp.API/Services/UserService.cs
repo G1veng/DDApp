@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using DDApp.API.Configs;
 using DDApp.DAL.Entites;
+using DDApp.Common.Exceptions;
 
 namespace DDApp.API.Services
 {
@@ -35,13 +36,13 @@ namespace DDApp.API.Services
             var user = await GetUserById(userId);
             if (user == null)
             {
-                throw new Exception("User not found");
+                throw new UserNotFoundException("User not found");
             }
 
             var attach = _mapper.Map<AttachModel>(user.Avatar);
             if(attach == null)
             {
-                throw new Exception("Avatar not found");
+                throw new AvatarNotFoundException("Avatar not found");
             }
             
             return attach;
@@ -65,12 +66,12 @@ namespace DDApp.API.Services
             }
         }
 
-        private async Task<DDApp.DAL.Entites.User> GetUserById(Guid id)
+        private async Task<User> GetUserById(Guid id)
         {
             var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
             {
-                throw new Exception("User not found");
+                throw new UserNotFoundException("User not found");
             }
 
             return user;
@@ -93,16 +94,18 @@ namespace DDApp.API.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == login.ToLower());
             if (user == null)
             {
-                throw new Exception("User not found");
+                throw new UserNotFoundException("User not found");
             }
 
             if (!DDApp.Common.HashHelper.Verify(password, user.PasswordHash))
             {
-                throw new Exception("Wrong password");
+                throw new WrongPasswordException("Wrong password");
             }
 
             return user;
         }
+
+        
 
         private TokenModel GenerateTokens(DAL.Entites.UserSession session)
         {
@@ -161,7 +164,7 @@ namespace DDApp.API.Services
 
             if(session == null)
             {
-                throw new Exception("Session is not found");
+                throw new SessionNotFoundException("Session is not found");
             }
 
             return session;
@@ -173,7 +176,7 @@ namespace DDApp.API.Services
 
             if(session == null)
             {
-                throw new Exception("Session is not found");
+                throw new SessionNotFoundException("Session is not found");
             }
 
             return session;
@@ -205,7 +208,7 @@ namespace DDApp.API.Services
                 var session = await GetSessionByRefreshToken(refreshTokenId);
                 if (!session.IsActive)
                 {
-                    throw new Exception("session is not active");
+                    throw new SessionNotActiveException("session is not active");
                 }
 
                 session.RefreshToken = Guid.NewGuid();

@@ -6,6 +6,7 @@ using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Authorization;
+using DDApp.Common.Exceptions;
 
 namespace DDApp.API.Controllers
 {
@@ -27,7 +28,7 @@ namespace DDApp.API.Controllers
         {
             if (await _userService.CheckUserExist(model.Email))
             {
-                throw new Exception("User is exist");
+                throw new UserExistException("User is exist");
             }
                 
             await _userService.CreateUser(model);
@@ -40,32 +41,11 @@ namespace DDApp.API.Controllers
             var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
             if (Guid.TryParse(userIdString, out var userId))
             {
-                var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
-                if (!tempFi.Exists)
-                {
-                    throw new Exception("File not found");
-                }
-                if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)))
-                {
-                    throw new Exception("File is not image");
-                }
-                
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
-
-                var destFi = new FileInfo(path);
-                if (destFi.Directory != null && !destFi.Directory.Exists)
-                {
-                    destFi.Directory.Create();
-                }
-
-                System.IO.File.Copy(tempFi.FullName, path, true);
-
-                await _attachmentsService.AddAvatarToUser(userId, model, path);
-                
+                await _attachmentsService.AddAvatarToUser(userId, model);
             }
             else
             {
-                throw new Exception("You are not authorized");
+                throw new AuthorizationException("You are not authorized");
             }
         }
 
@@ -76,6 +56,23 @@ namespace DDApp.API.Controllers
 
             return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
         }
+
+        [HttpPost]
+        [Authorize]
+        public async Task CreatePost(CreatePostModel model)
+        {
+            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                throw new AuthorizationException("You are not authorized");
+            }
+            else
+            {
+                await _attachmentsService.CreatePost(userId, model);
+            }
+        }
+        
 
         [HttpGet]
         [Authorize]
@@ -93,7 +90,7 @@ namespace DDApp.API.Controllers
             }
             else
             {
-                throw new Exception("You are not authorized");
+                throw new AuthorizationException("You are not authorized");
             }
         }
     }
