@@ -33,5 +33,8 @@ namespace DDApp.DAL
         public DbSet<Entites.UserSession> UserSessions => Set<Entites.UserSession>();
         public DbSet<Entites.Attach> Attaches => Set<Entites.Attach>();
         public DbSet<Entites.Avatar> Avatars => Set<Entites.Avatar>();
+        public DbSet<Entites.Posts> Posts => Set<Entites.Posts>();
+        public DbSet<Entites.PostComments> PostComments => Set<Entites.PostComments>();
+        public DbSet<Entites.PostFiles> PostFiles => Set<Entites.PostFiles>();
     }
 }

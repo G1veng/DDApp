@@ -16,5 +16,6 @@ namespace DDApp.DAL.Entites
 
         public virtual Avatar? Avatar { get; set; }
         public virtual ICollection<UserSession>? Session { get; set; }
+        public virtual ICollection<Posts>? Posts { get; set; }
     }
 }
