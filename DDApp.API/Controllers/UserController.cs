@@ -26,7 +26,10 @@ namespace DDApp.API.Controllers
         public async Task CreateUser(CreateUserModel model) 
         {
             if (await _userService.CheckUserExist(model.Email))
+            {
                 throw new Exception("User is exist");
+            }
+                
             await _userService.CreateUser(model);
         }
 
@@ -38,25 +41,27 @@ namespace DDApp.API.Controllers
             if (Guid.TryParse(userIdString, out var userId))
             {
                 var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
-
                 if (!tempFi.Exists)
                 {
                     throw new Exception("File not found");
                 }
-                else
+                if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)))
                 {
-                    var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
-
-                    var destFi = new FileInfo(path);
-                    if (destFi.Directory != null && !destFi.Directory.Exists)
-                    {
-                        destFi.Directory.Create();
-                    }
-
-                    System.IO.File.Copy(tempFi.FullName, path, true);
-
-                    await _attachmentsService.AddAvatarToUser(userId, model, path);
+                    throw new Exception("File is not image");
                 }
+                
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
+
+                var destFi = new FileInfo(path);
+                if (destFi.Directory != null && !destFi.Directory.Exists)
+                {
+                    destFi.Directory.Create();
+                }
+
+                System.IO.File.Copy(tempFi.FullName, path, true);
+
+                await _attachmentsService.AddAvatarToUser(userId, model, path);
+                
             }
             else
             {

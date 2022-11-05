@@ -20,6 +20,7 @@ namespace DDApp.API.Services
 
             if (user != null)
             {
+
                 var avatar = new Avatar
                 {
                     User = user,

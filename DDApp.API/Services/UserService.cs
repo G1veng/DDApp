@@ -33,7 +33,16 @@ namespace DDApp.API.Services
         public async Task<AttachModel> GetUserAvatar(Guid userId)
         {
             var user = await GetUserById(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
             var attach = _mapper.Map<AttachModel>(user.Avatar);
+            if(attach == null)
+            {
+                throw new Exception("Avatar not found");
+            }
             
             return attach;
         } 
