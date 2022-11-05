@@ -95,45 +95,7 @@ namespace DDApp.API.Services
             }
         }
 
-        public async Task CreatePost(Guid userId, CreatePostModel model)
-        {
-            var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
-
-            if (user == null)
-            {
-                throw new UserNotFoundException("User not found");
-            }
-            else
-            {
-                var filePath = string.Empty;
-                var post = await _context.Posts.AddAsync(new Posts
-                {
-                    Author = user,
-                    Created = DateTimeOffset.UtcNow,
-                    Text = model.Text,
-                });
-
-                if (model.Files != null)
-                {
-                    foreach (var meta in model.Files)
-                    {
-                        filePath = CopyImageVideoFile(meta);
-
-                        var postFile = await _context.PostFiles.AddAsync( new PostFiles
-                        {
-                            PostId = post.Entity.Id,
-                            Name = meta.Name,
-                            Author = user,
-                            MimeType = meta.MimeType,
-                            Size = meta.Size,
-                            FilePath = filePath,
-                        });
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-            }
-        }
+        
 
         private string CopyImageFile(MetadataModel model)
         {
@@ -160,7 +122,7 @@ namespace DDApp.API.Services
             return path;
         }
 
-        private string CopyImageVideoFile(MetadataModel model)
+        public string CopyImageVideoFile(MetadataModel model)
         {
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
             if (!tempFi.Exists)

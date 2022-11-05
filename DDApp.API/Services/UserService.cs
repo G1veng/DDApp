@@ -105,9 +105,7 @@ namespace DDApp.API.Services
             return user;
         }
 
-        
-
-        private TokenModel GenerateTokens(DAL.Entites.UserSession session)
+        private TokenModel GenerateTokens(UserSession session)
         {
             var dtNow = DateTime.Now;
 
@@ -145,7 +143,7 @@ namespace DDApp.API.Services
         {
             var user = await GetByCredential(login, password);
 
-            var session = await _context.UserSessions.AddAsync(new DAL.Entites.UserSession 
+            var session = await _context.UserSessions.AddAsync(new UserSession 
             {
                 User = user,
                 RefreshToken = Guid.NewGuid(),

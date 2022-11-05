@@ -57,23 +57,6 @@ namespace DDApp.API.Controllers
             return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
         }
 
-        [HttpPost]
-        [Authorize]
-        public async Task CreatePost(CreatePostModel model)
-        {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
-
-            if (!Guid.TryParse(userIdString, out var userId))
-            {
-                throw new AuthorizationException("You are not authorized");
-            }
-            else
-            {
-                await _attachmentsService.CreatePost(userId, model);
-            }
-        }
-        
-
         [HttpGet]
         [Authorize]
         public async Task<List<UserModel>> GetUsers() => await _userService.GetUsers();

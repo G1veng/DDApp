@@ -13,7 +13,7 @@ namespace DDApp.DAL.Entites
         public string Text { get; set; } = null!;
 
         public virtual ICollection<PostComments>? Comments { get; set; }
-        public virtual ICollection<PostFiles>? PostPhotos { get; set; }
+        public virtual ICollection<PostFiles>? PostFiles { get; set; }
         public virtual User Author { get; set; } = null!;
     }
 }

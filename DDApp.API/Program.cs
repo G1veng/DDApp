@@ -58,7 +58,8 @@ internal class Program {
         builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
 
         builder.Services.AddScoped<DDApp.API.Services.UserService>();
-        builder.Services.AddScoped<DDApp.API.Services.AttachmentsService>();
+        builder.Services.AddTransient<DDApp.API.Services.AttachmentsService>();
+        builder.Services.AddTransient<DDApp.API.Services.PostService>();
 
         builder.Services.AddAuthentication(o =>
         {

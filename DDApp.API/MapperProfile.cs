@@ -16,6 +16,10 @@ namespace DDApp.API
             CreateMap<DDApp.DAL.Entites.User, Models.UserModel>();
 
             CreateMap<DAL.Entites.Avatar, Models.AttachModel>();
+
+            CreateMap<DAL.Entites.Posts, Models.PostModel>();
+
+            CreateMap<DAL.Entites.PostComments, Models.PostCommentModel>();
         }
     }
 }
