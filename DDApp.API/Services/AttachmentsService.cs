@@ -42,6 +42,7 @@ namespace DDApp.API.Services
             var newPath = Path.Combine(tempPath, meta.TempId.ToString());
 
             var fileInfo = new FileInfo(newPath);
+
             if (fileInfo.Exists)
             {
                 throw new FileExistException("File exists");
