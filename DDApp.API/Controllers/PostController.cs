@@ -55,6 +55,11 @@ namespace DDApp.API.Controllers
         public async Task LikePostComment(Guid commentId)
             => await _postService.LikePostComment(commentId);
 
+        [HttpPost]
+        [Authorize]
+        public async Task RemoveLikeFromPostComment(Guid commentId)
+            => await _postService.RemoveLikeFromPostComment(commentId);
+
         [HttpGet]
         public async Task<PostModel> GetPost(Guid postId)
             => await _postService.GetPost(postId);

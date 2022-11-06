@@ -164,6 +164,7 @@ namespace DDApp.API.Services
         /// </summary>
         public async Task<List<PostModel>> GetPosts() {
             var posts = await _context.Posts.AsNoTracking()
+                .Include(x => x.Author)
                 .Include(x => x.PostFiles)
                 .ToListAsync();
 
@@ -229,6 +230,25 @@ namespace DDApp.API.Services
             }
 
             return attach;
+        }
+
+        /// <summary>
+        /// Убирает лайк с комментария
+        /// </summary>
+        public async Task RemoveLikeFromPostComment(Guid commentId)
+        {
+            var comment = await _context.PostComments.FirstOrDefaultAsync(x => x.Id == commentId);
+            if (comment == null)
+            {
+                throw new NullArgumentException("Comment not found");
+            }
+
+            if (comment.Likes > 0)
+            {
+                comment.Likes--;
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }
