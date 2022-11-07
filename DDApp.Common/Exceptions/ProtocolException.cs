@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace DDApp.Common.Exceptions
 {
-    public class UserExistException : Exception
+    public class ProtocolException : Exception
     {
-        public UserExistException(string message) : base(message) { }
+        public ProtocolException(string message) : base(message) { }
     }
 }

@@ -28,7 +28,7 @@ namespace DDApp.API.Controllers
         {
             if (await _userService.CheckUserExist(model.Email))
             {
-                throw new UserExistException("User is exist");
+                throw new UserException("User is exist");
             }
                 
             await _userService.CreateUser(model);

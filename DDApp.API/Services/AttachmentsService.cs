@@ -45,7 +45,7 @@ namespace DDApp.API.Services
 
             if (fileInfo.Exists)
             {
-                throw new FileExistException("File exists");
+                throw new FileException("File exists");
             }
             else
             {
@@ -102,7 +102,7 @@ namespace DDApp.API.Services
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
             if (!tempFi.Exists)
             {
-                throw new Common.Exceptions.FileNotFoundException("File not found");
+                throw new Common.Exceptions.FileException("File not found");
             }
             if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)))
             {
@@ -127,7 +127,7 @@ namespace DDApp.API.Services
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
             if (!tempFi.Exists)
             {
-                throw new Common.Exceptions.FileNotFoundException("File not found");
+                throw new Common.Exceptions.FileException("File not found");
             }
             if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)) &&
                 !Common.MimeTypeHelper.CheckVideoMimeTypeByMimeType(model.MimeType))

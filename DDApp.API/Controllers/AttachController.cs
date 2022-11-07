@@ -22,7 +22,7 @@ namespace DDApp.API.Controllers
         {
             if(files.Count == 0)
             {
-                throw new FileNotFoundException("Files not found");
+                throw new Common.Exceptions.FileException("Files not found");
             }
 
             return await _attachmentsService.UploadFiles(files);

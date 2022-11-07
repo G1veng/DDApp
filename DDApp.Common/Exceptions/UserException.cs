@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace DDApp.Common.Exceptions
 {
-    public class FileExistException : Exception
+    public class UserException : Exception
     {
-        public FileExistException(string message) : base(message) { }
+        public UserException(string message) : base(message) { }
     }
 }

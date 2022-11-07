@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace DDApp.Common.Exceptions
 {
-    public class SessionNotActiveException : Exception
+    public class SessionException : Exception
     {
-        public SessionNotActiveException(string message) : base(message) { }
+        public SessionException(string message) : base(message) { }
     }
 }

@@ -31,7 +31,11 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Добавляет один лайк к комментарию
+        /// Добавляет один лайк к комментарию.
+        /// Пока что можно добавлять много лайков от одного пользователя,
+        /// далее планируется ввести ограничение как связь один к одному,
+        /// и рассматривается также вариант, что будут только лайки,
+        /// как разность между лайками и дизлайками.
         /// </summary>
         public async Task LikePostComment(Guid commentId)
         {
@@ -47,7 +51,7 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Возвращает все комментарии к определенному посту
+        /// Возвращает все комментарии к определенному посту.
         /// </summary>
         public async Task<List<PostCommentModel>> GetPostCommentsByPostId(Guid postId)
         {
@@ -61,7 +65,7 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Возвращает по идентефикатору
+        /// Возвращает по идентефикатору.
         /// </summary>
         public async Task<PostModel> GetPost(Guid id)
         {
@@ -102,7 +106,7 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Создает пост и прикрепляет к нему польщователя и изображения, последние
+        /// Создает пост и прикрепляет к нему польщователя и изображения, последние.
         /// если имеются
         /// </summary>
         public async Task CreatePost(Guid userId, CreatePostModel model)
@@ -111,7 +115,7 @@ namespace DDApp.API.Services
 
             if (user == null)
             {
-                throw new UserNotFoundException("User not found");
+                throw new UserException("User not found");
             }
             else
             {
@@ -146,14 +150,14 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Создает пост привязанный к определенному пользователю
+        /// Создает пост привязанный к определенному пользователю.
         /// </summary>
         public async Task CreatePostComment(Guid userId, CreatePostCommentModel model)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
             if (user == null)
             {
-                throw new UserNotFoundException("User not found");
+                throw new UserException("User not found");
             }
 
             var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == model.PostId);
@@ -174,7 +178,7 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Возвращает все посты
+        /// Возвращает все посты.
         /// </summary>
         public async Task<List<PostModel>> GetPosts() {
             var posts = await _context.Posts.AsNoTracking()
@@ -215,6 +219,9 @@ namespace DDApp.API.Services
             return postModels;
         }
 
+        /// <summary>
+        /// Возвращает изображение по переданному пути.
+        /// </summary>
         private string GetImageAttchByFilePathRequestString(string filePath)
         {
             var adresses = _server.Features.Get<IServerAddressesFeature>()?.Addresses;
@@ -234,7 +241,7 @@ namespace DDApp.API.Services
                 }
             }
 
-            throw new Exception("No https protocol in adresses");
+            throw new ProtocolException("No https protocol in adresses");
         }
 
         private string AddParametr(string variable, string target)
@@ -251,7 +258,7 @@ namespace DDApp.API.Services
             var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.FilePath == filePath.Replace("\\\\", "\\"));
             if(attach == null)
             {
-                throw new Common.Exceptions.FileNotFoundException("Attach not found");
+                throw new Common.Exceptions.FileException("Attach not found");
             }
 
             var fileBytes = await File.ReadAllBytesAsync(attach.FilePath);
@@ -270,7 +277,7 @@ namespace DDApp.API.Services
             var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.FilePath == filePath.Replace("\\\\", "\\"));
             if (attach == null)
             {
-                throw new Common.Exceptions.FileNotFoundException("Attach not found");
+                throw new Common.Exceptions.FileException("Attach not found");
             }
 
             if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(attach.FilePath)))

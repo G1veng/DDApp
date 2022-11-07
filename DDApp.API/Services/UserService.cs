@@ -36,13 +36,13 @@ namespace DDApp.API.Services
             var user = await GetUserById(userId);
             if (user == null)
             {
-                throw new UserNotFoundException("User not found");
+                throw new UserException("User not found");
             }
 
             var attach = _mapper.Map<AttachModel>(user.Avatar);
             if(attach == null)
             {
-                throw new AvatarNotFoundException("Avatar not found");
+                throw new Common.Exceptions.FileException("Avatar not found");
             }
             
             return attach;
@@ -71,7 +71,7 @@ namespace DDApp.API.Services
             var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null)
             {
-                throw new UserNotFoundException("User not found");
+                throw new UserException("User not found");
             }
 
             return user;
@@ -94,7 +94,7 @@ namespace DDApp.API.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == login.ToLower());
             if (user == null)
             {
-                throw new UserNotFoundException("User not found");
+                throw new UserException("User not found");
             }
 
             if (!DDApp.Common.HashHelper.Verify(password, user.PasswordHash))
@@ -162,7 +162,7 @@ namespace DDApp.API.Services
 
             if(session == null)
             {
-                throw new SessionNotFoundException("Session is not found");
+                throw new SessionException("Session is not found");
             }
 
             return session;
@@ -174,7 +174,7 @@ namespace DDApp.API.Services
 
             if(session == null)
             {
-                throw new SessionNotFoundException("Session is not found");
+                throw new SessionException("Session is not found");
             }
 
             return session;
@@ -206,7 +206,7 @@ namespace DDApp.API.Services
                 var session = await GetSessionByRefreshToken(refreshTokenId);
                 if (!session.IsActive)
                 {
-                    throw new SessionNotActiveException("session is not active");
+                    throw new SessionException("session is not active");
                 }
 
                 session.RefreshToken = Guid.NewGuid();
