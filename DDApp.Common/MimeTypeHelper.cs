@@ -68,6 +68,9 @@ namespace DDApp.Common
             return false;
         }
 
+        /// <summary>
+        /// Проверяет является ли файл видео файлом, пока только mp4
+        /// </summary>
         public static bool CheckVideoMimeTypeByMimeType(string mimeType)
         {
             if (videoTypes.Contains(mimeType))
