@@ -118,7 +118,7 @@ internal class Program {
         app.UseTokenValidator();
 
         app.MapControllers();
-
+        
         app.Run();
     }
 }

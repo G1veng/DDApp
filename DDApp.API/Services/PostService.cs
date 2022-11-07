@@ -4,8 +4,11 @@ using DDApp.API.Models;
 using DDApp.Common.Exceptions;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace DDApp.API.Services
 {
@@ -15,14 +18,16 @@ namespace DDApp.API.Services
         private readonly IMapper _mapper;
         private readonly AttachmentsService _attachmentsService;
         private readonly UserService _userService;
+        private readonly IServer _server;
 
         public PostService(DataContext context, IMapper mapper, AttachmentsService attachmentsService,
-            UserService userService)
+            UserService userService, IServer server)
         {
             _context = context;
             _mapper = mapper;
             _attachmentsService = attachmentsService;
             _userService = userService;
+            _server = server;
         }
 
         /// <summary>
@@ -63,6 +68,7 @@ namespace DDApp.API.Services
             var post = await _context.Posts
                 .Include(x => x.Author)
                 .Include(x => x.PostFiles)
+                .Include(x => x.Comments)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (post == null)
             {
@@ -70,6 +76,11 @@ namespace DDApp.API.Services
             }
 
             var postModel = _mapper.Map<PostModel>(post);
+
+            if (post.Comments != null)
+            {
+                postModel.CommentAmount = post.Comments.Count;
+            }
 
             if (post.PostFiles != null)
             {
@@ -80,7 +91,10 @@ namespace DDApp.API.Services
 
                 foreach (var file in post.PostFiles)
                 {
-                    postModel.Files.Add(file.FilePath);
+                    FileStream fs = new FileStream(file.FilePath, FileMode.Open);
+
+
+                    postModel.Files.Add(GetImageAttchByFilePathRequestString(file.FilePath));
                 }
             }
 
@@ -166,6 +180,7 @@ namespace DDApp.API.Services
             var posts = await _context.Posts.AsNoTracking()
                 .Include(x => x.Author)
                 .Include(x => x.PostFiles)
+                .Include(x => x.Comments)
                 .ToListAsync();
 
             var postModels = new List<PostModel>();
@@ -176,6 +191,11 @@ namespace DDApp.API.Services
                 {
                     postModels.Add(_mapper.Map<PostModel>(post));
 
+                    if (post.Comments != null)
+                    {
+                        postModels[postModels.Count - 1].CommentAmount = post.Comments.Count;
+                    }
+
                     if (postModels[postModels.Count - 1].Files == null)
                     {
                         postModels[postModels.Count - 1].Files = new List<string>();
@@ -185,7 +205,8 @@ namespace DDApp.API.Services
                     {
                         foreach (var file in post.PostFiles)
                         {
-                            postModels[postModels.Count - 1].Files?.Add(file.FilePath);
+                            postModels[postModels.Count - 1].Files?
+                                .Add(GetImageAttchByFilePathRequestString(file.FilePath));
                         }
                     }
                 }
@@ -193,6 +214,34 @@ namespace DDApp.API.Services
 
             return postModels;
         }
+
+        private string GetImageAttchByFilePathRequestString(string filePath)
+        {
+            var adresses = _server.Features.Get<IServerAddressesFeature>()?.Addresses;
+
+            if(adresses == null)
+            {
+                throw new NullArgumentException("Not found server adresses");
+            }
+
+            foreach (var address in adresses)
+            {
+                if (address.Contains("https"))
+                {
+                    return address + Path.AltDirectorySeparatorChar
+                        + GetImageAttchByFilePathRequestPath()
+                        + AddParametr("filePath", filePath);
+                }
+            }
+
+            throw new Exception("No https protocol in adresses");
+        }
+
+        private string AddParametr(string variable, string target)
+            => "?" + variable + "=" + target;
+
+        private string GetImageAttchByFilePathRequestPath()
+            => "api/Post/GetPictureFromPostByFilePath";
 
         /// <summary>
         /// Возвращает аттач по пути к файлу

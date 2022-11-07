@@ -1,4 +1,5 @@
 ﻿using DDApp.DAL.Entites;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DDApp.API.Models
 {
@@ -9,5 +10,6 @@ namespace DDApp.API.Models
         public string Text { get; set; } = null!;
         public virtual Guid AuthorId { get; set; }
         public List<string>? Files { get; set; }
+        public int CommentAmount { get; set; } = 0;
     }
 }
