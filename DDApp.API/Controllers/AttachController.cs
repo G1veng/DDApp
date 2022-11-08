@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DDApp.API.Models;
 using DDApp.API.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DDApp.API.Controllers
 {
@@ -18,6 +19,7 @@ namespace DDApp.API.Controllers
 
         [HttpPost]
         [DisableRequestSizeLimit]
+        [Authorize]
         public async Task<List<MetadataModel>> UploadFiles([FromForm] List<IFormFile> files)
         {
             if(files.Count == 0)

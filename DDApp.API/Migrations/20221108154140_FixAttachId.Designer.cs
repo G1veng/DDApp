@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DDApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221105111724_AddPostAndPostCommecntPostFiles")]
-    partial class AddPostAndPostCommecntPostFiles
+    [Migration("20221108154140_FixAttachId")]
+    partial class FixAttachId
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,9 @@ namespace DDApp.API.Migrations
 
             modelBuilder.Entity("DDApp.DAL.Entites.Attach", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
@@ -72,6 +70,9 @@ namespace DDApp.API.Migrations
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
@@ -103,6 +104,9 @@ namespace DDApp.API.Migrations
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("text");
@@ -126,6 +130,9 @@ namespace DDApp.API.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -184,6 +191,9 @@ namespace DDApp.API.Migrations
             modelBuilder.Entity("DDApp.DAL.Entites.PostFiles", b =>
                 {
                     b.HasBaseType("DDApp.DAL.Entites.Attach");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("PostId")
                         .HasColumnType("uuid");
@@ -271,7 +281,7 @@ namespace DDApp.API.Migrations
                         .IsRequired();
 
                     b.HasOne("DDApp.DAL.Entites.Posts", "Post")
-                        .WithMany("PostPhotos")
+                        .WithMany("PostFiles")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -283,7 +293,7 @@ namespace DDApp.API.Migrations
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("PostPhotos");
+                    b.Navigation("PostFiles");
                 });
 
             modelBuilder.Entity("DDApp.DAL.Entites.User", b =>

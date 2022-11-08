@@ -50,6 +50,7 @@ namespace DDApp.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<FileResult> GetUserAvatar(Guid userId)
         {
             var attach = await _userService.GetUserAvatar(userId);

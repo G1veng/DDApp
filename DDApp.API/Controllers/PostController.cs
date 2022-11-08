@@ -61,18 +61,22 @@ namespace DDApp.API.Controllers
             => await _postService.RemoveLikeFromPostComment(commentId);
 
         [HttpGet]
+        [Authorize]
         public async Task<PostModel> GetPost(Guid postId)
             => await _postService.GetPost(postId);
 
         [HttpGet]
+        [Authorize]
         public async Task<List<PostCommentModel>> GetPostComments(Guid postId)
             => await _postService.GetPostCommentsByPostId(postId);
     
         [HttpGet]
+        [Authorize]
         public async Task<List<PostModel>> GetPosts()
             => await _postService.GetPosts();
 
         [HttpGet]
+        [Authorize]
         public async Task<FileResult> GetPictureFromPostByFilePath(string filePath)
         {
             var attach = await _postService.GetImageAttachByFilePath(filePath);
@@ -81,6 +85,7 @@ namespace DDApp.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<FileContentResult> DownloadFileByFilePath(string filePath)
             => await _postService.GetAttachByFilePath(filePath);
     }
