@@ -1,9 +1,9 @@
 ﻿using DDApp.API.Models;
 using DDApp.Common.Exceptions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using DDApp.API.Services;
+using DDApp.Common.Consts;
 
 namespace DDApp.API.Controllers
 {
@@ -16,13 +16,15 @@ namespace DDApp.API.Controllers
         public PostController(PostService postService)
         {
             _postService = postService;
+            _postService.SetLinkGenerator(x => 
+                Url.Action(nameof(GetPictureFromPostByAttachId),  new { id = x.Id, download = false }));
         }
 
         [HttpPost]
         [Authorize]
         public async Task CreatePost(CreatePostModel model)
         {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
 
             if (!Guid.TryParse(userIdString, out var userId))
             {
@@ -38,7 +40,7 @@ namespace DDApp.API.Controllers
         [Authorize]
         public async Task CreatePostComment(CreatePostCommentModel model)
         {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
 
             if (!Guid.TryParse(userIdString, out var userId))
             {
@@ -76,17 +78,39 @@ namespace DDApp.API.Controllers
             => await _postService.GetPosts();
 
         [HttpGet]
-        [Authorize]
-        public async Task<FileResult> GetPictureFromPostByFilePath(string filePath)
+        [AllowAnonymous]
+        public async Task<FileStreamResult> GetPictureFromPostByAttachId(Guid id, bool download)
         {
-            var attach = await _postService.GetImageAttachByFilePath(filePath);
+            var attach = await _postService.GetImageAttachByFilePath(id);
 
-            return File(System.IO.File.ReadAllBytes(attach.FilePath), attach.MimeType);
+            FileStream fs = new FileStream(attach.FilePath, FileMode.OpenOrCreate);
+
+            if (download)
+            {
+                return File(fs, attach.MimeType, attach.Name);
+            }
+            else
+            {
+                return File(fs, attach.MimeType);
+            }
         }
 
         [HttpGet]
-        [Authorize]
-        public async Task<FileContentResult> DownloadFileByFilePath(string filePath)
-            => await _postService.GetAttachByFilePath(filePath);
+        [AllowAnonymous]
+        public async Task<FileStreamResult> DownloadFileByFileId(Guid id, bool download) 
+        {
+            var attach = await _postService.GetAttachByAttachId(id);
+
+            FileStream fs = new FileStream(attach.FilePath, FileMode.OpenOrCreate);
+
+            if (download)
+            {
+                return File(fs, attach.MimeType, attach.Name);
+            }
+            else
+            {
+                return File(fs, attach.MimeType);
+            }
+        }
     }
 }

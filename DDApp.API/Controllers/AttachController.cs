@@ -10,9 +10,9 @@ namespace DDApp.API.Controllers
     [ApiController]
     public class AttachController : ControllerBase
     {
-        private readonly AttachmentsService _attachmentsService;
+        private readonly AttachService _attachmentsService;
 
-        public AttachController(AttachmentsService attachmentsService)
+        public AttachController(AttachService attachmentsService)
         {
             _attachmentsService = attachmentsService;
         }

@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using DDApp.API.Models;
+using DDApp.API.Models.Post;
 using DDApp.Common.Exceptions;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 
 namespace DDApp.API.Services
 {
@@ -16,18 +14,20 @@ namespace DDApp.API.Services
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-        private readonly AttachmentsService _attachmentsService;
-        private readonly UserService _userService;
-        private readonly IServer _server;
+        private readonly AttachService _attachmentsService;
+        private Func<PostFiles, string?>? _linkGenerator;
 
-        public PostService(DataContext context, IMapper mapper, AttachmentsService attachmentsService,
+        public void SetLinkGenerator(Func<PostFiles, string?> linkGenerator)
+        {
+            _linkGenerator = linkGenerator;
+        }
+
+        public PostService(DataContext context, IMapper mapper, AttachService attachmentsService,
             UserService userService, IServer server)
         {
             _context = context;
             _mapper = mapper;
             _attachmentsService = attachmentsService;
-            _userService = userService;
-            _server = server;
         }
 
         /// <summary>
@@ -79,30 +79,20 @@ namespace DDApp.API.Services
                 throw new NullArgumentException("Post not found");
             }
 
-            var postModel = _mapper.Map<PostModel>(post);
+            var postModel = _mapper.Map<RequestPostModel>(post);
+            postModel.LinkGenerator = _linkGenerator;
 
-            if (post.Comments != null)
+            var resPost = _mapper.Map<PostModel>(postModel);
+
+            if(postModel.PostFiles != null)
             {
-                postModel.CommentAmount = post.Comments.Count;
+                postModel.PostFiles.ForEach(file =>
+                {
+                    resPost.Files?.Add(postModel.LinkGenerator == null ? null : postModel.LinkGenerator(file));
+                });
             }
 
-            if (post.PostFiles != null)
-            {
-                if (postModel.Files == null)
-                {
-                    postModel.Files = new List<string>();
-                }
-
-                foreach (var file in post.PostFiles)
-                {
-                    FileStream fs = new FileStream(file.FilePath, FileMode.Open);
-
-
-                    postModel.Files.Add(GetImageAttchByFilePathRequestString(file.FilePath));
-                }
-            }
-
-            return postModel;
+            return resPost;
         }
 
         /// <summary>
@@ -190,92 +180,44 @@ namespace DDApp.API.Services
 
             var postModels = new List<PostModel>();
 
-            if (posts != null)
+            posts.ForEach(x => 
             {
-                foreach (var post in posts)
+                var post = _mapper.Map<Models.Post.RequestPostModel>(x);
+                post.LinkGenerator = _linkGenerator;
+
+                postModels.Add(_mapper.Map<PostModel>(post));
+
+                if (post.PostFiles != null)
                 {
-                    postModels.Add(_mapper.Map<PostModel>(post));
-
-                    if (post.Comments != null)
+                    post.PostFiles.ForEach(postFile =>
                     {
-                        postModels[postModels.Count - 1].CommentAmount = post.Comments.Count;
-                    }
-
-                    if (postModels[postModels.Count - 1].Files == null)
-                    {
-                        postModels[postModels.Count - 1].Files = new List<string>();
-                    }
-
-                    if (post.PostFiles != null)
-                    {
-                        foreach (var file in post.PostFiles)
-                        {
-                            postModels[postModels.Count - 1].Files?
-                                .Add(GetImageAttchByFilePathRequestString(file.FilePath));
-                        }
-                    }
+                        postModels[postModels.Count - 1].Files?.Add(post.LinkGenerator == null ? null : post.LinkGenerator(postFile));
+                    });
                 }
-            }
-
+            });
             return postModels;
         }
 
         /// <summary>
-        /// Возвращает изображение по переданному пути.
-        /// </summary>
-        private string GetImageAttchByFilePathRequestString(string filePath)
-        {
-            var adresses = _server.Features.Get<IServerAddressesFeature>()?.Addresses;
-
-            if(adresses == null)
-            {
-                throw new NullArgumentException("Not found server adresses");
-            }
-
-            foreach (var address in adresses)
-            {
-                if (address.Contains("https"))
-                {
-                    return address + Path.AltDirectorySeparatorChar
-                        + GetImageAttchByFilePathRequestPath()
-                        + AddParametr("filePath", filePath);
-                }
-            }
-
-            throw new ProtocolException("No https protocol in adresses");
-        }
-
-        private string AddParametr(string variable, string target)
-            => "?" + variable + "=" + target;
-
-        private string GetImageAttchByFilePathRequestPath()
-            => "api/Post/GetPictureFromPostByFilePath";
-
-        /// <summary>
         /// Возвращает аттач по пути к файлу
         /// </summary>
-        public async Task<FileContentResult> GetAttachByFilePath(string filePath)
+        public async Task<Attach> GetAttachByAttachId(Guid id)
         {
-            var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.FilePath == filePath.Replace("\\\\", "\\"));
+            var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
             if(attach == null)
             {
                 throw new Common.Exceptions.FileException("Attach not found");
             }
 
-            var fileBytes = await File.ReadAllBytesAsync(attach.FilePath);
-
-            return new FileContentResult(fileBytes, attach.MimeType)
-            {
-                FileDownloadName = attach.Name
-            };
+            return attach;
         }
 
         /// <summary>
         /// Возвращает аттач для переданного пути
         /// </summary>
-        public async Task<Attach> GetImageAttachByFilePath(string filePath)
+        public async Task<Attach> GetImageAttachByFilePath(Guid id)
         {
-            var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.FilePath == filePath.Replace("\\\\", "\\"));
+            var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
             if (attach == null)
             {
                 throw new Common.Exceptions.FileException("Attach not found");
@@ -300,10 +242,7 @@ namespace DDApp.API.Services
                 throw new NullArgumentException("Comment not found");
             }
 
-            if (comment.Likes > 0)
-            {
-                comment.Likes--;
-            }
+            comment.Likes--;
 
             await _context.SaveChangesAsync();
         }

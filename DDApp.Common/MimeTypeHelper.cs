@@ -63,7 +63,6 @@ namespace DDApp.Common
             {
                 return true;
             }
-            
 
             return false;
         }

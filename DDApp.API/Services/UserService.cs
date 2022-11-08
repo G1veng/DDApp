@@ -3,13 +3,9 @@ using AutoMapper.QueryableExtensions;
 using DDApp.API.Models;
 using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using DDApp.API.Configs;
 using DDApp.DAL.Entites;
 using DDApp.Common.Exceptions;
+using DDApp.API.Models.User;
 
 namespace DDApp.API.Services
 {
@@ -17,13 +13,21 @@ namespace DDApp.API.Services
     {
         private readonly IMapper _mapper;
         private readonly DataContext _context;
-        private readonly AuthConfig _config;
+        
+        private readonly AttachService _attachService;
+        private Func<Avatar?, string?>? _linkGenerator;
 
-        public UserService(IMapper mapper, DataContext context, IOptions<AuthConfig> config)
+        public void SetLinkGenerator(Func<Avatar?, string?>? linkGenerator)
+        {
+            _linkGenerator = linkGenerator;
+        }
+
+        public UserService(IMapper mapper, DataContext context,
+            AttachService attachService)
         {
             _mapper = mapper;
             _context = context;
-            _config = config.Value;
+            _attachService = attachService;
         }
 
         public async Task<bool> CheckUserExist(string email)
@@ -83,150 +87,54 @@ namespace DDApp.API.Services
             return user;
         }
 
-        public async Task<List<UserModel>> GetUsers()
+        public async Task<List<UserWithLinkModel>> GetUsers()
         {
-            return await _context.Users.AsNoTracking()
+            var resUsers = new List<UserWithLinkModel>();
+            var users = await _context.Users.AsNoTracking()
                 .Where(x => x.IsActive)
-                .ProjectTo<UserModel>(_mapper.ConfigurationProvider)
+                .Include(x => x.Avatar)
+                .ProjectTo<UserRequestModel>(_mapper.ConfigurationProvider)
                 .ToListAsync();
-        }
 
-        public async Task<DDApp.API.Models.UserModel> GetUser(Guid id)
-        {
-            var user = await GetUserById(id);
-
-            return _mapper.Map<DDApp.API.Models.UserModel>(user);
-        }
-
-        private async Task<DDApp.DAL.Entites.User> GetByCredential(string login, string password)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == login.ToLower());
-            if (user == null || user.IsActive == false)
+            users.ForEach(x => 
             {
-                throw new UserException("User not found");
-            }
-
-            if (!DDApp.Common.HashHelper.Verify(password, user.PasswordHash))
-            {
-                throw new WrongPasswordException("Wrong password");
-            }
-
-            return user;
-        }
-
-        private TokenModel GenerateTokens(UserSession session)
-        {
-            var dtNow = DateTime.Now;
-
-            var jwt = new JwtSecurityToken(
-                issuer: _config.Issuer,
-                audience: _config.Audience,
-                notBefore: dtNow,
-                claims: new Claim[] {
-                new Claim("id", session.User.Id.ToString()),
-                new Claim("sessionId", session.Id.ToString()),
-                new Claim(ClaimsIdentity.DefaultNameClaimType, session.User.Name),
-            },
-                expires: DateTime.Now.AddMinutes(_config.LifeTime),
-                signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
-                );
-
-            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-
-            var refresh = new JwtSecurityToken(
-                notBefore: dtNow,
-                claims: new Claim[] {
-                new Claim("refreshToken", session.RefreshToken.ToString()),
-            },
-                expires: DateTime.Now.AddHours(_config.LifeTime),
-                signingCredentials: new SigningCredentials(_config.SymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
-                );
-
-            var encodedRefresh = new JwtSecurityTokenHandler().WriteToken(refresh);
-
-            return new TokenModel(encodedJwt, encodedRefresh);
-
-        }
-
-        public async Task<TokenModel> GetToken(string login, string password)
-        {
-            var user = await GetByCredential(login, password);
-
-            var session = await _context.UserSessions.AddAsync(new UserSession 
-            {
-                User = user,
-                RefreshToken = Guid.NewGuid(),
-                Created = DateTime.UtcNow,
-                Id = new Guid()
+                x.LinkGenerator = _linkGenerator;
+                resUsers.Add(_mapper.Map<UserWithLinkModel>(x));
             });
 
-            await _context.SaveChangesAsync();
-
-            return GenerateTokens(session.Entity);
+            return resUsers;
         }
 
-        private async Task<UserSession> GetSessionByRefreshToken(Guid id)
+        public async Task<DDApp.API.Models.UserWithLinkModel> GetUser(Guid id)
         {
-            var session = await _context.UserSessions.Include(x => x.User).FirstOrDefaultAsync(x => x.RefreshToken == id);
+            var user = _mapper.Map<DDApp.API.Models.User.UserRequestModel>(await GetUserById(id));
+            user.LinkGenerator = _linkGenerator;
 
-            if(session == null)
-            {
-                throw new SessionException("Session is not found");
-            }
-
-            return session;
+            return _mapper.Map<UserWithLinkModel>(user);
         }
 
-        public async Task<UserSession> GetSessionById(Guid id)
+        public async Task AddAvatarToUser(Guid userId, MetadataModel meta)
         {
-            var session = await _context.UserSessions.FirstOrDefaultAsync(x => x.Id == id);
+            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == userId);
 
-            if(session == null)
+            if (user != null)
             {
-                throw new SessionException("Session is not found");
-            }
 
-            return session;
-        }
+                var filePath = _attachService.CopyImageFile(meta);
 
-        public async Task<TokenModel> GetTokenByRefreshToken(string refreshToken)
-        {
-            var validParams = new TokenValidationParameters
-            {
-                ValidateAudience = false,
-                ValidateIssuer = false,
-                ValidateIssuerSigningKey = true,
-                ValidateLifetime = true,
-                IssuerSigningKey = _config.SymmetricSecurityKey()
-            };
-
-            var principal = new JwtSecurityTokenHandler().ValidateToken(refreshToken, validParams, out var securityToken);
-
-            if (securityToken is not JwtSecurityToken jwtToken 
-                || !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-                StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new SecurityTokenException("Invalid token");
-            }
-
-            if(principal.Claims.FirstOrDefault(x => x.Type == "refreshToken")?.Value is String refreshTokenString
-                && Guid.TryParse(refreshTokenString, out var refreshTokenId))
-            {
-                var session = await GetSessionByRefreshToken(refreshTokenId);
-                if (!session.IsActive)
+                var avatar = new Avatar
                 {
-                    throw new SessionException("session is not active");
-                }
+                    User = user,
+                    Author = user,
+                    MimeType = meta.MimeType,
+                    FilePath = filePath,
+                    Size = meta.Size,
+                    Name = meta.Name,
+                };
+                user.Avatar = avatar;
 
-                session.RefreshToken = Guid.NewGuid();
                 await _context.SaveChangesAsync();
 
-
-                return GenerateTokens(session);
-            }
-            else
-            {
-                throw new SecurityTokenException("Invalid token");
             }
         }
     }

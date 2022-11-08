@@ -1,18 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DDApp.DAL.Entites;
-using DDApp.API.Models;
-using AutoMapper;
+﻿using DDApp.API.Models;
 using DDApp.Common.Exceptions;
 
 namespace DDApp.API.Services
 {
-    public class AttachmentsService
+    public class AttachService
     {
-        private readonly DDApp.DAL.DataContext _context;
 
-        public AttachmentsService(DDApp.DAL.DataContext context)
+        public AttachService(DDApp.DAL.DataContext context)
         {
-            _context = context;
         }
 
         public async Task<List<MetadataModel>> UploadFiles(List<IFormFile> files)
@@ -70,34 +65,7 @@ namespace DDApp.API.Services
             }
         }
 
-        public async Task AddAvatarToUser(Guid userId, MetadataModel meta)
-        {
-            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == userId);
-
-            if (user != null)
-            {
-
-                var filePath = CopyImageFile(meta);
-
-                var avatar = new Avatar
-                {
-                    User = user,
-                    Author = user,
-                    MimeType = meta.MimeType,
-                    FilePath = filePath,
-                    Size = meta.Size,
-                    Name = meta.Name,
-                };
-                user.Avatar = avatar;
-
-                await _context.SaveChangesAsync();
-
-            }
-        }
-
-        
-
-        private string CopyImageFile(MetadataModel model)
+        public string CopyImageFile(MetadataModel model)
         {
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
             if (!tempFi.Exists)
@@ -109,7 +77,7 @@ namespace DDApp.API.Services
                 throw new WrongTypeException("File is not image");
             }
 
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
+            var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString());
 
             var destFi = new FileInfo(path);
             if (destFi.Directory != null && !destFi.Directory.Exists)
@@ -118,6 +86,8 @@ namespace DDApp.API.Services
             }
 
             System.IO.File.Copy(tempFi.FullName, path, true);
+
+            tempFi.Delete();
 
             return path;
         }
@@ -135,7 +105,7 @@ namespace DDApp.API.Services
                 throw new WrongTypeException("File is not image or video");
             }
 
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "attaches", model.TempId.ToString());
+            var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString());
 
             var destFi = new FileInfo(path);
             if (destFi.Directory != null && !destFi.Directory.Exists)
@@ -144,6 +114,8 @@ namespace DDApp.API.Services
             }
 
             System.IO.File.Copy(tempFi.FullName, path, true);
+
+            tempFi.Delete();
 
             return path;
         }
