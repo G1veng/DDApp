@@ -12,6 +12,7 @@ namespace DDApp.DAL.Entites
         public string Text { get; set; } = null!;
         public DateTimeOffset Created { get; set; }
         public int Likes { get; set; } = 0;
+        public bool IsActive { get; set; } = true;
 
         public virtual Posts Post { get; set; } = null!;
         public virtual User Author { get; set; } = null!;

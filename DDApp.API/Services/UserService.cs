@@ -28,13 +28,19 @@ namespace DDApp.API.Services
 
         public async Task<bool> CheckUserExist(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower()) == null ? false : true;
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower());
+            if(user == null || user.IsActive == false)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public async Task<AttachModel> GetUserAvatar(Guid userId)
         {
             var user = await GetUserById(userId);
-            if (user == null)
+            if (user == null || user.IsActive == false)
             {
                 throw new UserException("User not found");
             }
@@ -61,7 +67,7 @@ namespace DDApp.API.Services
 
             if(user != null)
             {
-                _context.Users.Remove(user);
+                user.IsActive = false;
                 await _context.SaveChangesAsync();
             }
         }
@@ -69,7 +75,7 @@ namespace DDApp.API.Services
         private async Task<User> GetUserById(Guid id)
         {
             var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
-            if (user == null)
+            if (user == null || user.IsActive == false)
             {
                 throw new UserException("User not found");
             }
@@ -79,7 +85,10 @@ namespace DDApp.API.Services
 
         public async Task<List<UserModel>> GetUsers()
         {
-            return await _context.Users.AsNoTracking().ProjectTo<UserModel>(_mapper.ConfigurationProvider).ToListAsync();
+            return await _context.Users.AsNoTracking()
+                .Where(x => x.IsActive)
+                .ProjectTo<UserModel>(_mapper.ConfigurationProvider)
+                .ToListAsync();
         }
 
         public async Task<DDApp.API.Models.UserModel> GetUser(Guid id)
@@ -92,7 +101,7 @@ namespace DDApp.API.Services
         private async Task<DDApp.DAL.Entites.User> GetByCredential(string login, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == login.ToLower());
-            if (user == null)
+            if (user == null || user.IsActive == false)
             {
                 throw new UserException("User not found");
             }

@@ -40,7 +40,7 @@ namespace DDApp.API.Services
         public async Task LikePostComment(Guid commentId)
         {
             var comment = await _context.PostComments.FirstOrDefaultAsync(x => x.Id == commentId);
-            if (comment == null)
+            if (comment == null || comment.IsActive == false)
             {
                 throw new NullArgumentException("Comment not found");
             }
@@ -74,7 +74,7 @@ namespace DDApp.API.Services
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
                 .FirstOrDefaultAsync(x => x.Id == id);
-            if (post == null)
+            if (post == null || post.IsActive == false)
             {
                 throw new NullArgumentException("Post not found");
             }
@@ -113,7 +113,7 @@ namespace DDApp.API.Services
         {
             var user = await _context.Users.Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
 
-            if (user == null)
+            if (user == null || user.IsActive == false)
             {
                 throw new UserException("User not found");
             }
@@ -155,13 +155,13 @@ namespace DDApp.API.Services
         public async Task CreatePostComment(Guid userId, CreatePostCommentModel model)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
-            if (user == null)
+            if (user == null || user.IsActive == false)
             {
                 throw new UserException("User not found");
             }
 
             var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == model.PostId);
-            if (post == null)
+            if (post == null || post.IsActive == false)
             {
                 throw new NullArgumentException("Post not found");
             }
@@ -182,6 +182,7 @@ namespace DDApp.API.Services
         /// </summary>
         public async Task<List<PostModel>> GetPosts() {
             var posts = await _context.Posts.AsNoTracking()
+                .Where(x => x.IsActive)
                 .Include(x => x.Author)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
@@ -294,7 +295,7 @@ namespace DDApp.API.Services
         public async Task RemoveLikeFromPostComment(Guid commentId)
         {
             var comment = await _context.PostComments.FirstOrDefaultAsync(x => x.Id == commentId);
-            if (comment == null)
+            if (comment == null || comment.IsActive == false)
             {
                 throw new NullArgumentException("Comment not found");
             }
