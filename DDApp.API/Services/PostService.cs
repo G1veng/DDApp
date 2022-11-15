@@ -6,6 +6,7 @@ using DDApp.Common.Exceptions;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace DDApp.API.Services
@@ -15,11 +16,14 @@ namespace DDApp.API.Services
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly AttachService _attachmentsService;
-        private Func<PostFiles, string?>? _linkGenerator;
+        private Func<PostFiles, string?>? _postLinkGenerator;
+        private Func<Avatar?, string?>? _userAvatarLinkGenerator;
 
-        public void SetLinkGenerator(Func<PostFiles, string?> linkGenerator)
+        public void SetLinkGenerator(Func<PostFiles, string?> postLinkGenerator,
+            Func<Avatar?, string?>? userAvatarLinkGenerator)
         {
-            _linkGenerator = linkGenerator;
+            _postLinkGenerator = postLinkGenerator;
+            _userAvatarLinkGenerator = userAvatarLinkGenerator;
         }
 
         public PostService(DataContext context, IMapper mapper, AttachService attachmentsService,
@@ -70,7 +74,9 @@ namespace DDApp.API.Services
         public async Task<PostModel> GetPost(Guid id)
         {
             var post = await _context.Posts
+                .AsNoTracking()
                 .Include(x => x.Author)
+                .Include(x => x.Author.Avatar)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -80,9 +86,10 @@ namespace DDApp.API.Services
             }
 
             var postModel = _mapper.Map<RequestPostModel>(post);
-            postModel.LinkGenerator = _linkGenerator;
+            postModel.LinkGenerator = _postLinkGenerator;
 
             var resPost = _mapper.Map<PostModel>(postModel);
+            resPost.AuthorAvatar = _userAvatarLinkGenerator == null ? null : _userAvatarLinkGenerator(post.Author.Avatar);
 
             if(postModel.PostFiles != null)
             {
@@ -183,9 +190,10 @@ namespace DDApp.API.Services
             posts.ForEach(x => 
             {
                 var post = _mapper.Map<Models.Post.RequestPostModel>(x);
-                post.LinkGenerator = _linkGenerator;
+                post.LinkGenerator = _postLinkGenerator;
 
                 postModels.Add(_mapper.Map<PostModel>(post));
+                postModels[postModels.Count - 1].AuthorAvatar = _userAvatarLinkGenerator == null ? null : _userAvatarLinkGenerator(_context.Avatars.AsNoTracking().Where(a => a.UserId == post.AuthorId).FirstOrDefault());
 
                 if (post.PostFiles != null)
                 {
@@ -212,24 +220,7 @@ namespace DDApp.API.Services
             return attach;
         }
 
-        /// <summary>
-        /// Возвращает аттач для переданного пути
-        /// </summary>
-        public async Task<Attach> GetImageAttachByFilePath(Guid id)
-        {
-            var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
-            if (attach == null)
-            {
-                throw new Common.Exceptions.FileException("Attach not found");
-            }
-
-            if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(attach.FilePath)))
-            {
-                throw new WrongTypeException("File is not image format");
-            }
-
-            return attach;
-        }
+        
 
         /// <summary>
         /// Убирает лайк с комментария

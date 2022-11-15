@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DDApp.API.Services;
 using DDApp.Common.Consts;
+using DDApp.DAL.Entites;
+using DDApp.Common.Extensions;
 
 namespace DDApp.API.Controllers
 {
@@ -12,13 +14,23 @@ namespace DDApp.API.Controllers
     public class PostController : ControllerBase
     {
         private readonly PostService _postService;
+        private readonly AttachService _attachService;
 
-        public PostController(PostService postService)
+        public PostController(PostService postService, AttachService attachService)
         {
+            _attachService = attachService;
             _postService = postService;
-            _postService.SetLinkGenerator(x => 
-                Url.Action(nameof(GetPictureFromPostByAttachId),  new { id = x.Id, download = false }));
+            _postService.SetLinkGenerator(
+                x => Url.Action(nameof(AttachController.GetPostPictureByAttchId), "Attach", new { postContentId = x.Id }),
+                y => Url.Action(nameof(AttachController.GetUserAvatarByAttachId), "Attach", new { userId = y?.Id }));
         }
+
+        [HttpGet]
+        [Route("{postContentId}")]
+        [AllowAnonymous]
+        public async Task<FileStreamResult> GetPostPicture(Guid postContentId, bool download)
+            => GetFile(await _attachService.GetImageAttachByAttachId(postContentId), download);
+        
 
         [HttpPost]
         [Authorize]
@@ -63,7 +75,7 @@ namespace DDApp.API.Controllers
             => await _postService.RemoveLikeFromPostComment(commentId);
 
         [HttpGet]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<PostModel> GetPost(Guid postId)
             => await _postService.GetPost(postId);
 
@@ -73,35 +85,14 @@ namespace DDApp.API.Controllers
             => await _postService.GetPostCommentsByPostId(postId);
     
         [HttpGet]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<List<PostModel>> GetPosts()
             => await _postService.GetPosts();
 
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<FileStreamResult> GetPictureFromPostByAttachId(Guid id, bool download)
+
+        private FileStreamResult GetFile(Attach attach, bool download = false)
         {
-            var attach = await _postService.GetImageAttachByFilePath(id);
-
-            FileStream fs = new FileStream(attach.FilePath, FileMode.OpenOrCreate);
-
-            if (download)
-            {
-                return File(fs, attach.MimeType, attach.Name);
-            }
-            else
-            {
-                return File(fs, attach.MimeType);
-            }
-        }
-
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<FileStreamResult> DownloadFileByFileId(Guid id, bool download) 
-        {
-            var attach = await _postService.GetAttachByAttachId(id);
-
-            FileStream fs = new FileStream(attach.FilePath, FileMode.OpenOrCreate);
+            var fs = new FileStream(attach.FilePath, FileMode.Open);
 
             if (download)
             {

@@ -15,9 +15,11 @@ namespace DDApp.API.Controllers
 
         public UserController(DDApp.API.Services.UserService userService, DDApp.API.Services.AttachService attachService)
         {
+            userService.SetLinkGenerator(x 
+                => Url.Action(nameof(AttachController.GetUserAvatarByAttachId), nameof(AttachController), new { userId = x?.UserId, download = false }));
             _userService = userService;
             _attachmentsService = attachService;
-            _userService.SetLinkGenerator(x => Url.Action(nameof(GetUserAvatar), new {userId = x?.UserId, download = false}));
+            
         }
 
         [HttpPost]
@@ -46,22 +48,7 @@ namespace DDApp.API.Controllers
             }
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<FileStreamResult> GetUserAvatar(Guid userId, bool download)
-        {
-            var attach = await _userService.GetUserAvatar(userId);
-            FileStream fileStream = new FileStream(attach.FilePath, FileMode.Open);
-
-            if (download)
-            {
-                return File(fileStream, attach.MimeType, attach.Name);
-            }
-            else
-            {
-                return File(fileStream, attach.MimeType);
-            }
-        }
+        
 
         [HttpGet]
         [Authorize]

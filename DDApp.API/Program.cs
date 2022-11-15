@@ -15,7 +15,7 @@ internal class Program {
         var authConfig = authSection.Get<DDApp.API.Configs.AuthConfig>();
 
 
-        builder.Services.Configure  <DDApp.API.Configs.AuthConfig>(authSection);
+        builder.Services.Configure<DDApp.API.Configs.AuthConfig>(authSection);
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -58,9 +58,11 @@ internal class Program {
         builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
 
         builder.Services.AddScoped<DDApp.API.Services.UserService>();
-        builder.Services.AddTransient<DDApp.API.Services.AttachService>();
-        builder.Services.AddTransient<DDApp.API.Services.PostService>();
-        builder.Services.AddTransient<DDApp.API.Services.AuthService>();
+        builder.Services.AddScoped<DDApp.API.Services.AttachService>();
+        builder.Services.AddScoped<DDApp.API.Services.PostService>();
+        builder.Services.AddScoped<DDApp.API.Services.AuthService>();
+
+        
 
         builder.Services.AddAuthentication(o =>
         {

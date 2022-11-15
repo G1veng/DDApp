@@ -1,13 +1,18 @@
 ﻿using DDApp.API.Models;
 using DDApp.Common.Exceptions;
+using DDApp.DAL.Entites;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DDApp.API.Services
 {
     public class AttachService
     {
+        private readonly DDApp.DAL.DataContext _context;
 
         public AttachService(DDApp.DAL.DataContext context)
         {
+            _context = context;
         }
 
         public async Task<List<MetadataModel>> UploadFiles(List<IFormFile> files)
@@ -20,6 +25,25 @@ namespace DDApp.API.Services
             }
 
             return res;
+        }
+
+        /// <summary>
+        /// Возвращает аттач для переданного пути
+        /// </summary>
+        public async Task<Attach> GetImageAttachByAttachId(Guid id)
+        {
+            var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
+            if (attach == null)
+            {
+                throw new Common.Exceptions.FileException("Attach not found");
+            }
+
+            if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(attach.FilePath)))
+            {
+                throw new WrongTypeException("File is not image format");
+            }
+
+            return attach;
         }
 
         public async Task<MetadataModel> UploadFile(IFormFile file)
@@ -119,5 +143,8 @@ namespace DDApp.API.Services
 
             return path;
         }
+
+
+        
     }
 }
