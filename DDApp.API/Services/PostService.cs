@@ -16,18 +16,8 @@ namespace DDApp.API.Services
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly AttachService _attachmentsService;
-        private Func<PostFiles, string?>? _postLinkGenerator;
-        private Func<Avatar?, string?>? _userAvatarLinkGenerator;
 
-        public void SetLinkGenerator(Func<PostFiles, string?> postLinkGenerator,
-            Func<Avatar?, string?>? userAvatarLinkGenerator)
-        {
-            _postLinkGenerator = postLinkGenerator;
-            _userAvatarLinkGenerator = userAvatarLinkGenerator;
-        }
-
-        public PostService(DataContext context, IMapper mapper, AttachService attachmentsService,
-            UserService userService, IServer server)
+        public PostService(DataContext context, IMapper mapper, AttachService attachmentsService)
         {
             _context = context;
             _mapper = mapper;
@@ -75,31 +65,17 @@ namespace DDApp.API.Services
         {
             var post = await _context.Posts
                 .AsNoTracking()
-                .Include(x => x.Author)
-                .Include(x => x.Author.Avatar)
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
                 .FirstOrDefaultAsync(x => x.Id == id);
+
             if (post == null || post.IsActive == false)
             {
                 throw new NullArgumentException("Post not found");
             }
 
-            var postModel = _mapper.Map<RequestPostModel>(post);
-            postModel.LinkGenerator = _postLinkGenerator;
-
-            var resPost = _mapper.Map<PostModel>(postModel);
-            resPost.AuthorAvatar = _userAvatarLinkGenerator == null ? null : _userAvatarLinkGenerator(post.Author.Avatar);
-
-            if(postModel.PostFiles != null)
-            {
-                postModel.PostFiles.ForEach(file =>
-                {
-                    resPost.Files?.Add(postModel.LinkGenerator == null ? null : postModel.LinkGenerator(file));
-                });
-            }
-
-            return resPost;
+            return _mapper.Map<PostModel>(post);
         }
 
         /// <summary>
@@ -183,27 +159,15 @@ namespace DDApp.API.Services
                 .Include(x => x.Author)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
+                .Select(x => _mapper.Map<Posts, PostModel>(x))
                 .ToListAsync();
 
-            var postModels = new List<PostModel>();
-
-            posts.ForEach(x => 
+            if(posts == null || posts == default)
             {
-                var post = _mapper.Map<Models.Post.RequestPostModel>(x);
-                post.LinkGenerator = _postLinkGenerator;
+                throw new Exception("Posts not found"); //Надо ли????
+            }
 
-                postModels.Add(_mapper.Map<PostModel>(post));
-                postModels[postModels.Count - 1].AuthorAvatar = _userAvatarLinkGenerator == null ? null : _userAvatarLinkGenerator(_context.Avatars.AsNoTracking().Where(a => a.UserId == post.AuthorId).FirstOrDefault());
-
-                if (post.PostFiles != null)
-                {
-                    post.PostFiles.ForEach(postFile =>
-                    {
-                        postModels[postModels.Count - 1].Files?.Add(post.LinkGenerator == null ? null : post.LinkGenerator(postFile));
-                    });
-                }
-            });
-            return postModels;
+            return posts;
         }
 
         /// <summary>
@@ -214,7 +178,7 @@ namespace DDApp.API.Services
             var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
             if(attach == null)
             {
-                throw new Common.Exceptions.FileException("Attach not found");
+                throw new FileException("Attach not found");
             }
 
             return attach;

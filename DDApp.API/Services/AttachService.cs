@@ -46,6 +46,19 @@ namespace DDApp.API.Services
             return attach;
         }
 
+        public async Task<Attach> GetUserAvatarByUserId(Guid userId)
+        {
+            var avatar = await _context.Avatars.FirstOrDefaultAsync(x => x.UserId == userId);
+
+            if(avatar == null)
+            {
+                throw new DDApp.Common.Exceptions.FileException("Avatar not dound exception");
+            }
+
+            return avatar;
+        }
+        
+
         public async Task<MetadataModel> UploadFile(IFormFile file)
         {
             var tempPath = Path.GetTempPath();

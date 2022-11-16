@@ -15,12 +15,6 @@ namespace DDApp.API.Services
         private readonly DataContext _context;
         
         private readonly AttachService _attachService;
-        private Func<Avatar?, string?>? _linkGenerator;
-
-        public void SetLinkGenerator(Func<Avatar?, string?>? linkGenerator)
-        {
-            _linkGenerator = linkGenerator;
-        }
 
         public UserService(IMapper mapper, DataContext context,
             AttachService attachService)
@@ -52,7 +46,7 @@ namespace DDApp.API.Services
             var attach = _mapper.Map<AttachModel>(user.Avatar);
             if(attach == null)
             {
-                throw new Common.Exceptions.FileException("Avatar not found");
+                throw new FileException("Avatar not found");
             }
             
             return attach;
@@ -60,7 +54,7 @@ namespace DDApp.API.Services
 
         public async Task CreateUser(CreateUserModel model)
         {
-            var dbUser = _mapper.Map<DDApp.DAL.Entites.User>(model);
+            var dbUser = _mapper.Map<User>(model);
             await _context.Users.AddAsync(dbUser);
             await _context.SaveChangesAsync();
         }
@@ -88,29 +82,17 @@ namespace DDApp.API.Services
         }
 
         public async Task<List<UserWithLinkModel>> GetUsers()
-        {
-            var resUsers = new List<UserWithLinkModel>();
-            var users = await _context.Users.AsNoTracking()
+            =>  await _context.Users.AsNoTracking()
                 .Where(x => x.IsActive)
                 .Include(x => x.Avatar)
-                .ProjectTo<UserRequestModel>(_mapper.ConfigurationProvider)
+                .Select(x => _mapper.Map<User, UserWithLinkModel>(x))
                 .ToListAsync();
 
-            users.ForEach(x => 
-            {
-                x.LinkGenerator = _linkGenerator;
-                resUsers.Add(_mapper.Map<UserWithLinkModel>(x));
-            });
-
-            return resUsers;
-        }
-
-        public async Task<DDApp.API.Models.UserWithLinkModel> GetUser(Guid id)
+        public async Task<UserWithLinkModel> GetUser(Guid id)
         {
-            var user = _mapper.Map<DDApp.API.Models.User.UserRequestModel>(await GetUserById(id));
-            user.LinkGenerator = _linkGenerator;
+            var user = _mapper.Map<UserWithLinkModel>(await GetUserById(id));
 
-            return _mapper.Map<UserWithLinkModel>(user);
+            return user;
         }
 
         public async Task AddAvatarToUser(Guid userId, MetadataModel meta)

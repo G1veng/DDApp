@@ -4,30 +4,21 @@ using DDApp.API.Models;
 using DDApp.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using DDApp.DAL.Entites;
+using DDApp.Common.Extensions;
 
 namespace DDApp.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [ApiExplorerSettings(GroupName = "Api")]
     public class AttachController : ControllerBase
     {
         private readonly AttachService _attachmentsService;
-        private readonly UserService _userService;
-        private readonly PostService _postService;
 
-        public AttachController(AttachService attachmentsService, UserService userService,
-            PostService postService)
+        public AttachController(AttachService attachmentsService)
         {
             _attachmentsService = attachmentsService;
-            _userService = userService;
-            _postService = postService;
-            _userService.SetLinkGenerator(x => Url.Action(nameof(GetUserAvatarByAttachId), new { userId = x?.UserId}));
-            /*_postService.SetLinkGenerator(
-                x => Url.Action(nameof(PostController.GetPostPicture), new { id = x.Id }),
-                y => Url.Action(nameof(GetUserAvatar), new { y?.Id }));*/
         }
-
-        
 
         [HttpPost]
         [DisableRequestSizeLimit]
@@ -43,10 +34,16 @@ namespace DDApp.API.Controllers
         }
 
         [HttpGet]
-        [Route("{userId}")]
+        [Route("userId")]
         [AllowAnonymous]
-        public async Task<FileStreamResult> GetUserAvatarByAttachId(Guid userId, bool download)
-            => GetFile(await _attachmentsService.GetImageAttachByAttachId(userId), download);
+        public async Task<FileStreamResult?> GetUserAvatarByUserId(Guid userId, bool download)
+            => GetFile(await _attachmentsService.GetUserAvatarByUserId(userId), download);
+
+        [HttpGet]
+        [Route("{attachId}")]
+        [AllowAnonymous]
+        public async Task<FileStreamResult> GetUserAvatarByAttachId(Guid attachId, bool download)
+            => GetFile(await _attachmentsService.GetImageAttachByAttachId(attachId), download);
 
         [HttpGet]
         [Route("{postContentId}")]

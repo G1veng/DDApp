@@ -1,0 +1,22 @@
+﻿using AutoMapper;
+using DDApp.API.Models;
+using DDApp.API.Models.User;
+using DDApp.DAL.Entites;
+
+namespace DDApp.API.Mapper.MapperActions
+{
+    public class UserAvatarMapperAction : IMappingAction<User, UserWithLinkModel>
+    {
+        private readonly Func<Avatar?, string?>? _avatarLinkHelper;
+
+        public UserAvatarMapperAction(Services.LinkGeneratorService linkGeneratorService)
+        {
+            _avatarLinkHelper = linkGeneratorService.AvatarLinkGenerator;
+        }
+
+        public void Process(User source, UserWithLinkModel destination, ResolutionContext context)
+        {
+            destination.Avatar = _avatarLinkHelper == null ? null : _avatarLinkHelper(source.Avatar);
+        }
+    }
+}

@@ -11,26 +11,22 @@ namespace DDApp.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [ApiExplorerSettings(GroupName = "Api")]
     public class PostController : ControllerBase
     {
         private readonly PostService _postService;
         private readonly AttachService _attachService;
 
-        public PostController(PostService postService, AttachService attachService)
+        public PostController(PostService postService, AttachService attachService,
+            LinkGeneratorService linkGeneratorService)
         {
             _attachService = attachService;
             _postService = postService;
-            _postService.SetLinkGenerator(
-                x => Url.Action(nameof(AttachController.GetPostPictureByAttchId), "Attach", new { postContentId = x.Id }),
-                y => Url.Action(nameof(AttachController.GetUserAvatarByAttachId), "Attach", new { userId = y?.Id }));
+            linkGeneratorService.SetLinkGenerators(
+                x => Url.ControllerAction<AttachController>(nameof(AttachController.GetPostPictureByAttchId), new { postContentId = x?.Id}),
+                y => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByAttachId), new { attachId = y?.Id }),
+                z => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByUserId), new { userId = z }));
         }
-
-        [HttpGet]
-        [Route("{postContentId}")]
-        [AllowAnonymous]
-        public async Task<FileStreamResult> GetPostPicture(Guid postContentId, bool download)
-            => GetFile(await _attachService.GetImageAttachByAttachId(postContentId), download);
-        
 
         [HttpPost]
         [Authorize]
@@ -88,20 +84,5 @@ namespace DDApp.API.Controllers
         [AllowAnonymous]
         public async Task<List<PostModel>> GetPosts()
             => await _postService.GetPosts();
-
-
-        private FileStreamResult GetFile(Attach attach, bool download = false)
-        {
-            var fs = new FileStream(attach.FilePath, FileMode.Open);
-
-            if (download)
-            {
-                return File(fs, attach.MimeType, attach.Name);
-            }
-            else
-            {
-                return File(fs, attach.MimeType);
-            }
-        }
     }
 }
