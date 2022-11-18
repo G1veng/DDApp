@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DDApp.DAL.Entites
+﻿namespace DDApp.DAL.Entites
 {
     public class Posts
     {
@@ -16,5 +10,6 @@ namespace DDApp.DAL.Entites
         public virtual ICollection<PostComments>? Comments { get; set; }
         public virtual ICollection<PostFiles>? PostFiles { get; set; }
         public virtual User Author { get; set; } = null!;
+        public virtual ICollection<PostLikes>? PostLikes { get; set; }
     }
 }

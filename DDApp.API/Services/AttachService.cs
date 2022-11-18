@@ -1,7 +1,6 @@
 ﻿using DDApp.API.Models;
 using DDApp.Common.Exceptions;
 using DDApp.DAL.Entites;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace DDApp.API.Services

@@ -22,7 +22,6 @@ namespace DDApp.API.Controllers
                 x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByAttachId), new { attachId = x?.Id });
             _userService = userService;
             _attachmentsService = attachService;
-            
         }
 
         [HttpPost]
@@ -41,35 +40,30 @@ namespace DDApp.API.Controllers
         [HttpPost]
         [Authorize]
         public async Task AddAvatarToUser(MetadataModel model)
-        {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
-            if (Guid.TryParse(userIdString, out var userId))
-            {
-                await _userService.AddAvatarToUser(userId, model);
-            }
-            else
-            {
-                throw new AuthorizationException("You are not authorized");
-            }
-        }
+            => await _userService.AddAvatarToUser(GetCurrentUserGuid(), model);
 
         [HttpGet]
         [Authorize]
-        public async Task<List<UserWithLinkModel>> GetUsers() => await _userService.GetUsers();
+        public async Task<List<UserWithLinkModel>> GetUsers()
+            => await _userService.GetUsers();
 
         [HttpGet]
         [Authorize]
         public async Task<UserWithLinkModel> GetCurrentUser() 
+            => await _userService.GetUser(GetCurrentUserGuid());
+
+
+        private Guid GetCurrentUserGuid()
         {
             var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
 
-            if(Guid.TryParse(userIdString, out var userId))
+            if (!Guid.TryParse(userIdString, out var userId))
             {
-                return await _userService.GetUser(userId);
+                throw new AuthorizationException("You are not authorized");
             }
             else
             {
-                throw new AuthorizationException("You are not authorized");
+                return userId;
             }
         }
     }

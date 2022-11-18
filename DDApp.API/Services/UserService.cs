@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using DDApp.API.Models;
 using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using DDApp.DAL.Entites;
 using DDApp.Common.Exceptions;
-using DDApp.API.Models.User;
 
 namespace DDApp.API.Services
 {

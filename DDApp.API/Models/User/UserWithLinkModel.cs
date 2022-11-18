@@ -1,7 +1,4 @@
-﻿using DDApp.API.Models.User;
-using DDApp.DAL.Entites;
-
-namespace DDApp.API.Models
+﻿namespace DDApp.API.Models
 {
     public class UserWithLinkModel
     {

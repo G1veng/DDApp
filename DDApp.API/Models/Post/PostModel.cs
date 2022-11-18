@@ -13,5 +13,6 @@ namespace DDApp.API.Models
         public List<ExternalPostFileLinkModel?>? PostFiles { get; set; } = new List<ExternalPostFileLinkModel?>();
         public string? AuthorAvatar { get; set; }
         public int CommentAmount { get; set; } = 0;
+        public int LikesAmount { get; set; } = 0;
     }
 }

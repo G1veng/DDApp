@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using DDApp.API.Models;
 using DDApp.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using DDApp.DAL.Entites;
-using DDApp.Common.Extensions;
 
 namespace DDApp.API.Controllers
 {
@@ -65,6 +63,5 @@ namespace DDApp.API.Controllers
                 return File(fs, attach.MimeType);
             }
         }
-
     }
 }

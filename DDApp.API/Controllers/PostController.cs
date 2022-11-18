@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DDApp.API.Services;
 using DDApp.Common.Consts;
-using DDApp.DAL.Entites;
 using DDApp.Common.Extensions;
 
 namespace DDApp.API.Controllers
@@ -31,47 +30,25 @@ namespace DDApp.API.Controllers
         [HttpPost]
         [Authorize]
         public async Task CreatePost(CreatePostModel model)
-        {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
-
-            if (!Guid.TryParse(userIdString, out var userId))
-            {
-                throw new AuthorizationException("You are not authorized");
-            }
-            else
-            {
-                await _postService.CreatePost(userId, model);
-            }
-        }
+            => await _postService.CreatePost(GetCurrentUserGuid(), model);
 
         [HttpPost]
         [Authorize]
         public async Task CreatePostComment(CreatePostCommentModel model)
-        {
-            var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
-
-            if (!Guid.TryParse(userIdString, out var userId))
-            {
-                throw new AuthorizationException("You are not authorized");
-            }
-            else
-            {
-                await _postService.CreatePostComment(userId, model);
-            }
-        }
+            => await _postService.CreatePostComment(GetCurrentUserGuid(), model);
 
         [HttpPost]
         [Authorize]
-        public async Task LikePostComment(Guid commentId)
-            => await _postService.LikePostComment(commentId);
+        public async Task ChangePostCommentLikeState(Guid commentId)
+            => await _postService.ChangePostCommentLikeState(commentId, GetCurrentUserGuid());
 
         [HttpPost]
         [Authorize]
-        public async Task RemoveLikeFromPostComment(Guid commentId)
-            => await _postService.RemoveLikeFromPostComment(commentId);
+        public async Task ChangePostLikeState(Guid postId)
+            => await _postService.ChangePostLikeState(postId, GetCurrentUserGuid());
 
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<PostModel> GetPost(Guid postId)
             => await _postService.GetPost(postId);
 
@@ -81,8 +58,23 @@ namespace DDApp.API.Controllers
             => await _postService.GetPostCommentsByPostId(postId);
     
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<List<PostModel>> GetPosts()
             => await _postService.GetPosts();
+
+
+        private Guid GetCurrentUserGuid()
+        {
+            var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
+
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                throw new AuthorizationException("You are not authorized");
+            }
+            else
+            {
+                return userId;
+            }
+        } 
     }
 }

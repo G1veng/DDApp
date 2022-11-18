@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using DDApp.API.Models;
-using DDApp.API.Models.User;
 using DDApp.DAL.Entites;
 
 namespace DDApp.API.Mapper.MapperActions

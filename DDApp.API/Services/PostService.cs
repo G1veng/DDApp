@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using DDApp.API.Models;
-using DDApp.API.Models.Post;
 using DDApp.Common.Exceptions;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace DDApp.API.Services
@@ -22,26 +19,6 @@ namespace DDApp.API.Services
             _context = context;
             _mapper = mapper;
             _attachmentsService = attachmentsService;
-        }
-
-        /// <summary>
-        /// Добавляет один лайк к комментарию.
-        /// Пока что можно добавлять много лайков от одного пользователя,
-        /// далее планируется ввести ограничение как связь один к одному,
-        /// и рассматривается также вариант, что будут только лайки,
-        /// как разность между лайками и дизлайками.
-        /// </summary>
-        public async Task LikePostComment(Guid commentId)
-        {
-            var comment = await _context.PostComments.FirstOrDefaultAsync(x => x.Id == commentId);
-            if (comment == null || comment.IsActive == false)
-            {
-                throw new NullArgumentException("Comment not found");
-            }
-
-            comment.Likes++;
-
-            await _context.SaveChangesAsync();
         }
 
         /// <summary>
@@ -79,8 +56,8 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Создает пост и прикрепляет к нему польщователя и изображения, последние.
-        /// если имеются
+        /// Создает пост и прикрепляет к нему польщователя и изображения, последние
+        /// если имеются.
         /// </summary>
         public async Task CreatePost(Guid userId, CreatePostModel model)
         {
@@ -159,6 +136,7 @@ namespace DDApp.API.Services
                 .Include(x => x.Author)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
+                .Include(x => x.PostLikes)
                 .Select(x => _mapper.Map<Posts, PostModel>(x))
                 .ToListAsync();
 
@@ -171,7 +149,7 @@ namespace DDApp.API.Services
         }
 
         /// <summary>
-        /// Возвращает аттач по пути к файлу
+        /// Возвращает аттач по пути к файлу.
         /// </summary>
         public async Task<Attach> GetAttachByAttachId(Guid id)
         {
@@ -184,20 +162,91 @@ namespace DDApp.API.Services
             return attach;
         }
 
-        
-
         /// <summary>
-        /// Убирает лайк с комментария
+        /// Если лайк был он удаляется, если его не было, то он доавляется.
         /// </summary>
-        public async Task RemoveLikeFromPostComment(Guid commentId)
+        public async Task ChangePostCommentLikeState(Guid postCommentId, Guid userId)
         {
-            var comment = await _context.PostComments.FirstOrDefaultAsync(x => x.Id == commentId);
-            if (comment == null || comment.IsActive == false)
+            var like = new PostCommentLikes
             {
-                throw new NullArgumentException("Comment not found");
+                UserId = userId,
+                PostCommentId = postCommentId,
+            };
+
+            if (_context.PostCommentsLikes.Contains(like))
+            {
+                _context.PostCommentsLikes.Remove(like);
+            }
+            else
+            {
+                _context.PostCommentsLikes.Add(like);
             }
 
-            comment.Likes--;
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Если лайк на посте был, то он удаляется,
+        /// в противном случае добавляется.
+        /// </summary>
+        public async Task ChangePostLikeState(Guid postId, Guid userId)
+        {
+            var like = new PostLikes
+            {
+                UserId = userId,
+                PostId = postId,
+            };
+
+            if (_context.PostLikes.Contains(like))
+            {
+                _context.PostLikes.Remove(like);
+            }
+            else
+            {
+                _context.PostLikes.Add(like);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Добавляет лайк к посту.
+        /// </summary>
+        public async Task AddPostLike(Guid postId, Guid userId)
+        {
+            var postLike = new PostLikes
+            {
+                PostId = postId,
+                UserId = userId,
+            };
+
+            if (_context.PostLikes.Contains(postLike))
+            {
+                throw new Exception("Cannot like more than one time");
+            }
+
+            _context.PostLikes.Add(postLike);
+
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Убирает лайк с поста.
+        /// </summary>
+        public async Task RemoveLikePost(Guid postId, Guid userId)
+        {
+            var postLike = new PostLikes
+            {
+                PostId = postId,
+                UserId = userId,
+            };
+
+            if (!_context.PostLikes.Contains(postLike))
+            {
+                throw new Exception("Cannot like more than one time");
+            }
+
+            _context.PostLikes.Remove(postLike);
 
             await _context.SaveChangesAsync();
         }

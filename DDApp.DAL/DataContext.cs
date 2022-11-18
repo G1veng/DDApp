@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DDApp.DAL
 {
@@ -24,6 +19,14 @@ namespace DDApp.DAL
             modelBuilder.
                 Entity<Entites.Avatar>()
                 .ToTable(nameof(Avatars));
+
+            modelBuilder
+                .Entity<Entites.PostCommentLikes>()
+                .HasKey(u => new {u.UserId, u.PostCommentId});
+
+            modelBuilder
+                .Entity<Entites.PostLikes>()
+                .HasKey(u => new { u.UserId, u.PostId });
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -36,5 +39,7 @@ namespace DDApp.DAL
         public DbSet<Entites.Posts> Posts => Set<Entites.Posts>();
         public DbSet<Entites.PostComments> PostComments => Set<Entites.PostComments>();
         public DbSet<Entites.PostFiles> PostFiles => Set<Entites.PostFiles>();
+        public DbSet<Entites.PostCommentLikes> PostCommentsLikes => Set<Entites.PostCommentLikes>();
+        public DbSet<Entites.PostLikes> PostLikes => Set<Entites.PostLikes>();
     }
 }
