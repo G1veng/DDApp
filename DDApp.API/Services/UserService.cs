@@ -68,17 +68,6 @@ namespace DDApp.API.Services
             }
         }
 
-        private async Task<User> GetUserById(Guid id)
-        {
-            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
-            if (user == null || user.IsActive == false)
-            {
-                throw new UserException("User not found");
-            }
-
-            return user;
-        }
-
         public async Task<List<UserWithLinkModel>> GetUsers()
             =>  await _context.Users.AsNoTracking()
                 .Where(x => x.IsActive)
@@ -116,6 +105,18 @@ namespace DDApp.API.Services
                 await _context.SaveChangesAsync();
 
             }
+        }
+
+
+        private async Task<User> GetUserById(Guid id)
+        {
+            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
+            if (user == null || user.IsActive == false)
+            {
+                throw new UserException("User not found");
+            }
+
+            return user;
         }
     }
 }

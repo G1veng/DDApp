@@ -22,11 +22,27 @@ namespace DDApp.DAL
 
             modelBuilder
                 .Entity<Entites.PostCommentLikes>()
-                .HasKey(u => new {u.UserId, u.PostCommentId});
+                .HasKey(u => new {u.UserId, u.PostCommentId });
 
             modelBuilder
                 .Entity<Entites.PostLikes>()
                 .HasKey(u => new { u.UserId, u.PostId });
+
+            modelBuilder
+                .Entity<Entites.Subscriptions>()
+                .HasKey(u => new {u.SubscriberId, u.SubscriptionId});
+
+            modelBuilder.
+                Entity<Entites.Subscriptions>()
+                .HasOne(p => p.UserSubscriber)
+                .WithMany(t => t.Subscribers)
+                .HasForeignKey(p => p.SubscriptionId);
+
+            modelBuilder.
+                Entity<Entites.Subscriptions>()
+                .HasOne(p => p.UserSubscription)
+                .WithMany(t => t.Subscriptions)
+                .HasForeignKey(p => p.SubscriberId);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -41,5 +57,6 @@ namespace DDApp.DAL
         public DbSet<Entites.PostFiles> PostFiles => Set<Entites.PostFiles>();
         public DbSet<Entites.PostCommentLikes> PostCommentsLikes => Set<Entites.PostCommentLikes>();
         public DbSet<Entites.PostLikes> PostLikes => Set<Entites.PostLikes>();
+        public DbSet<Entites.Subscriptions> Subscriptions => Set<Entites.Subscriptions>();
     }
 }

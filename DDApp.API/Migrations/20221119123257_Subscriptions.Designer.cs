@@ -3,6 +3,7 @@ using System;
 using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DDApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20221119123257_Subscriptions")]
+    partial class Subscriptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -147,12 +150,12 @@ namespace DDApp.API.Migrations
                     b.Property<Guid>("SubscriberId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("SubscriptionId")
+                    b.Property<Guid>("SubscribedOnId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("SubscriberId", "SubscriptionId");
+                    b.HasKey("SubscriberId", "SubscribedOnId");
 
-                    b.HasIndex("SubscriptionId");
+                    b.HasIndex("SubscribedOnId");
 
                     b.ToTable("Subscriptions");
                 });
@@ -164,9 +167,6 @@ namespace DDApp.API.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("BirthDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -326,15 +326,15 @@ namespace DDApp.API.Migrations
 
             modelBuilder.Entity("DDApp.DAL.Entites.Subscriptions", b =>
                 {
-                    b.HasOne("DDApp.DAL.Entites.User", "UserSubscription")
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("SubscriberId")
+                    b.HasOne("DDApp.DAL.Entites.User", "UserSubscriber")
+                        .WithMany("Subscribers")
+                        .HasForeignKey("SubscribedOnId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DDApp.DAL.Entites.User", "UserSubscriber")
-                        .WithMany("Subscribers")
-                        .HasForeignKey("SubscriptionId")
+                    b.HasOne("DDApp.DAL.Entites.User", "UserSubscription")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("SubscriberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

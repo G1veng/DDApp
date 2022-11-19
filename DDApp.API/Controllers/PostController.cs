@@ -34,16 +34,6 @@ namespace DDApp.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task CreatePostComment(CreatePostCommentModel model)
-            => await _postService.CreatePostComment(GetCurrentUserGuid(), model);
-
-        [HttpPost]
-        [Authorize]
-        public async Task ChangePostCommentLikeState(Guid commentId)
-            => await _postService.ChangePostCommentLikeState(commentId, GetCurrentUserGuid());
-
-        [HttpPost]
-        [Authorize]
         public async Task ChangePostLikeState(Guid postId)
             => await _postService.ChangePostLikeState(postId, GetCurrentUserGuid());
 
@@ -51,16 +41,11 @@ namespace DDApp.API.Controllers
         [Authorize]
         public async Task<PostModel> GetPost(Guid postId)
             => await _postService.GetPost(postId);
-
-        [HttpGet]
-        [Authorize]
-        public async Task<List<PostCommentModel>> GetPostComments(Guid postId)
-            => await _postService.GetPostCommentsByPostId(postId);
     
         [HttpGet]
         [Authorize]
-        public async Task<List<PostModel>> GetPosts()
-            => await _postService.GetPosts();
+        public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)
+            => await _postService.GetPosts(skip, take);
 
 
         private Guid GetCurrentUserGuid()
@@ -75,6 +60,6 @@ namespace DDApp.API.Controllers
             {
                 return userId;
             }
-        } 
+        }
     }
 }

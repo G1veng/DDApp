@@ -14,7 +14,8 @@ namespace DDApp.API
             CreateMap<CreateUserModel, User>()
                 .ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
                 .ForMember(d => d.PasswordHash, m => m.MapFrom(s => HashHelper.GetHash(s.Password)))
-                .ForMember(d => d.BirthDate, m => m.MapFrom(s => s.BirthDate.UtcDateTime));
+                .ForMember(d => d.BirthDate, m => m.MapFrom(s => s.BirthDate.UtcDateTime))
+                .ForMember(d => d.Created, m => m.MapFrom(s => DateTimeOffset.UtcNow));
 
             CreateMap<User, UserWithLinkModel>().AfterMap<UserAvatarMapperAction>();
 
@@ -29,6 +30,12 @@ namespace DDApp.API
                 .AfterMap<PostAuthorAvatarMapperAction>();
 
             CreateMap<PostFiles, ExternalPostFileLinkModel>().AfterMap<PostFileMapperAction>();
+
+            CreateMap<User, Models.Subscription.SubscriberModel>()
+                .ForMember(d => d.LastEntered, m => m.MapFrom(s => (s.Session == null || s.Session.Count == 0) ? s.Created : s.Session.Last().Created))
+                .ForMember(d => d.UserId, m => m.MapFrom(s => s.Id))
+                .ForMember(d => d.UserName, m => m.MapFrom(s => s.Name))
+                .AfterMap<SubscriptionAvatarMapperAction>();
         }
     }
 }

@@ -32,7 +32,7 @@ namespace DDApp.API.Controllers
         }
 
         [HttpGet]
-        [Route("userId")]
+        [Route("{userId}")]
         [AllowAnonymous]
         public async Task<FileStreamResult?> GetUserAvatarByUserId(Guid userId, bool download)
             => GetFile(await _attachmentsService.GetUserAvatarByUserId(userId), download);

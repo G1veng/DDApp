@@ -1,5 +1,4 @@
-﻿using System;
-namespace DDApp.DAL.Entites
+﻿namespace DDApp.DAL.Entites
 {
     public class PostLikes
     {
