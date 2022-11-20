@@ -56,7 +56,6 @@ namespace DDApp.API.Services
 
             return avatar;
         }
-        
 
         public async Task<MetadataModel> UploadFile(IFormFile file)
         {

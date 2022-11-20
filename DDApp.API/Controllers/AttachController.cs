@@ -49,6 +49,12 @@ namespace DDApp.API.Controllers
         public async Task<FileStreamResult> GetPostPictureByAttchId(Guid postContentId, bool download)
             => GetFile(await _attachmentsService.GetImageAttachByAttachId(postContentId), download);
 
+        [HttpGet]
+        [Route("{directPictureId}")]
+        [AllowAnonymous]
+        public async Task<FileStreamResult> GetDirectPictureByAttchId(Guid directPictureId, bool download)
+            => GetFile(await _attachmentsService.GetImageAttachByAttachId(directPictureId), download);
+
 
         private FileStreamResult GetFile(Attach attach, bool download = false)
         {

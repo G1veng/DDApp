@@ -67,6 +67,7 @@ internal class Program {
         builder.Services.AddScoped<DDApp.API.Services.LinkGeneratorService>();
         builder.Services.AddScoped<DDApp.API.Services.SubscriptionService>();
         builder.Services.AddScoped<DDApp.API.Services.PostCommentService>();
+        builder.Services.AddScoped<DDApp.API.Services.DirectService>();
 
         builder.Services.AddAuthentication(o =>
         {

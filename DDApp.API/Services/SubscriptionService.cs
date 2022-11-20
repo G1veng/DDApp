@@ -19,34 +19,15 @@ namespace DDApp.API.Services
         }
 
         public async Task<List<SubscriberModel>> GetSubscribers(Guid userId, int skip, int take)
-        {
-            var subscribersDb = await _context.Subscriptions
+            => await _context.Subscriptions
                 .AsNoTracking()
                 .Skip(skip)
                 .Take(take)
                 .Where(x => x.SubscriptionId == userId)
+                .Include(x => x.UserSubscriber).ThenInclude(x => x.Avatar)
+                .Include(x => x.UserSubscriber).ThenInclude(x => x.Session)
+                .Select(x => _mapper.Map<SubscriberModel>(x))
                 .ToListAsync();
-
-            if(subscribersDb == null || subscribersDb.Count == 0)
-            {
-                return new List<SubscriberModel>();
-            }
-
-            var subscribers = new List<SubscriberModel>();
-
-            subscribersDb.ForEach(x =>
-            {
-                subscribers.Add(
-                    _mapper.Map<SubscriberModel>(_context.Users
-                    .Include(y => y.Avatar)
-                    .Include(y => y.Session)
-                    .AsNoTracking()
-                    .FirstOrDefault(y => y.Id == x.SubscriberId))
-                );
-            });
-
-            return subscribers;
-        }
 
         public async Task ChangeSubscriptionStateOnUserById(Guid subscriberId, Guid subscriptionId)
         {
@@ -78,35 +59,16 @@ namespace DDApp.API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<SubscriberModel>> GetSubscriptions(Guid userId, int skip, int take)
-        {
-            var subscriptionsDb = await _context.Subscriptions
+        public async Task<List<SubscriptionModel>> GetSubscriptions(Guid userId, int skip, int take)
+            => await _context.Subscriptions
                 .AsNoTracking()
                 .Skip(skip)
                 .Take(take)
                 .Where(x => x.SubscriberId == userId)
+                .Include(x => x.UserSubscription).ThenInclude(x => x.Avatar)
+                .Include(x => x.UserSubscription).ThenInclude(x => x.Session)
+                .Select(x => _mapper.Map<SubscriptionModel>(x))
                 .ToListAsync();
-
-            if (subscriptionsDb == null || subscriptionsDb.Count == 0)
-            {
-                return new List<SubscriberModel>();
-            }
-
-            var subscriptions = new List<SubscriberModel>();
-
-            subscriptionsDb.ForEach(x =>
-            {
-                subscriptions.Add(_mapper.Map<SubscriberModel>(
-                    _context.Users
-                    .Include(y => y.Avatar)
-                    .Include(y => y.Session)
-                    .AsNoTracking()
-                    .FirstOrDefault(y => y.Id == x.SubscriptionId))
-                );
-            });
-
-            return subscriptions;
-        }
 
 
         private async Task<bool> CheckUserExistById(Guid userId)
@@ -118,17 +80,6 @@ namespace DDApp.API.Services
             }
 
             return true;
-        }
-
-        private async Task<User> GetUserById(Guid id)
-        {
-            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
-            if (user == null || user.IsActive == false)
-            {
-                throw new UserException("User not found");
-            }
-
-            return user;
         }
     }
 }

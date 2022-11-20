@@ -22,27 +22,47 @@ namespace DDApp.DAL
 
             modelBuilder
                 .Entity<Entites.PostCommentLikes>()
-                .HasKey(u => new {u.UserId, u.PostCommentId });
+                .HasKey(x => new {x.UserId, x.PostCommentId });
 
             modelBuilder
                 .Entity<Entites.PostLikes>()
-                .HasKey(u => new { u.UserId, u.PostId });
+                .HasKey(x => new { x.UserId, x.PostId });
 
             modelBuilder
                 .Entity<Entites.Subscriptions>()
-                .HasKey(u => new {u.SubscriberId, u.SubscriptionId});
+                .HasKey(x => new {x.SubscriberId, x.SubscriptionId});
 
             modelBuilder.
                 Entity<Entites.Subscriptions>()
-                .HasOne(p => p.UserSubscriber)
-                .WithMany(t => t.Subscribers)
-                .HasForeignKey(p => p.SubscriptionId);
+                .HasOne(x => x.UserSubscriber)
+                .WithMany(x => x.Subscribers)
+                .HasForeignKey(x => x.SubscriberId);
 
             modelBuilder.
                 Entity<Entites.Subscriptions>()
-                .HasOne(p => p.UserSubscription)
-                .WithMany(t => t.Subscriptions)
-                .HasForeignKey(p => p.SubscriberId);
+                .HasOne(x => x.UserSubscription)
+                .WithMany(x => x.Subscriptions)
+                .HasForeignKey(x => x.SubscriptionId);
+
+            modelBuilder.
+                Entity<Entites.DirectMessages>()
+                .HasKey(x => x.DirectMessageId);
+
+            modelBuilder
+                .Entity<Entites.DirectMembers>()
+                .HasKey(x => new { x.DirectId, x.UserId });
+
+            modelBuilder
+                .Entity<Entites.DirectMessages>()
+                .HasOne(x => x.User)
+                .WithMany(x => x.DirectMessages)
+                .HasForeignKey(x => x.SenderId);
+
+            modelBuilder
+                .Entity<Entites.DirectFiles>()
+                .HasOne(x => x.DirectMessage)
+                .WithMany(x => x.DirectFiles)
+                .HasForeignKey(x => x.DirectMessagesId);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -58,5 +78,9 @@ namespace DDApp.DAL
         public DbSet<Entites.PostCommentLikes> PostCommentsLikes => Set<Entites.PostCommentLikes>();
         public DbSet<Entites.PostLikes> PostLikes => Set<Entites.PostLikes>();
         public DbSet<Entites.Subscriptions> Subscriptions => Set<Entites.Subscriptions>();
+        public DbSet<Entites.Direct> Directs => Set<Entites.Direct>();
+        public DbSet<Entites.DirectMessages> DirectMessages => Set<Entites.DirectMessages>();
+        public DbSet<Entites.DirectMembers> DirectMembers => Set<Entites.DirectMembers>();
+        public DbSet<Entites.DirectFiles> DirectFiles => Set<Entites.DirectFiles>();
     }
 }

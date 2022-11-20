@@ -91,6 +91,7 @@ namespace DDApp.API.Services
         public async Task<List<PostModel>> GetPosts(int skip, int take) {
             var posts = await _context.Posts.AsNoTracking()
                 .Where(x => x.IsActive)
+                .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(take)
                 .Include(x => x.Author)

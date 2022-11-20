@@ -21,10 +21,12 @@ namespace DDApp.API.Controllers
         {
             _attachService = attachService;
             _postService = postService;
-            linkGeneratorService.SetLinkGenerators(
-                x => Url.ControllerAction<AttachController>(nameof(AttachController.GetPostPictureByAttchId), new { postContentId = x?.Id}),
-                y => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByAttachId), new { attachId = y?.Id }),
-                z => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByUserId), new { userId = z }));
+            linkGeneratorService.AvatarLinkGenerator = 
+                y => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByAttachId), new { attachId = y?.Id });
+            linkGeneratorService.PostAuthorAvatarLinkGenerator = 
+                z => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByUserId), new { userId = z });
+            linkGeneratorService.PostFileLinkGenerator = 
+                x => Url.ControllerAction<AttachController>(nameof(AttachController.GetPostPictureByAttchId), new { postContentId = x?.Id });
         }
 
         [HttpPost]

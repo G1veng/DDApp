@@ -17,5 +17,7 @@
         public virtual ICollection<PostCommentLikes>? PostCommentLikes { get; set; }
         public virtual ICollection<Subscriptions>? Subscriptions { get; set; }
         public virtual ICollection<Subscriptions>? Subscribers { get; set; }
+        public virtual ICollection<DirectMembers>? Directs { get; set; }
+        public virtual ICollection<DirectMessages>? DirectMessages { get; set; }
     }
 }

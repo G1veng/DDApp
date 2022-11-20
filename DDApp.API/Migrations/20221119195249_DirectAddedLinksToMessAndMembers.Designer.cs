@@ -3,6 +3,7 @@ using System;
 using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DDApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20221119195249_DirectAddedLinksToMessAndMembers")]
+    partial class DirectAddedLinksToMessAndMembers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,6 +89,9 @@ namespace DDApp.API.Migrations
 
                     b.HasKey("DirectId", "UserId");
 
+                    b.HasIndex("DirectId")
+                        .IsUnique();
+
                     b.HasIndex("UserId");
 
                     b.ToTable("DirectMembers");
@@ -111,7 +117,8 @@ namespace DDApp.API.Migrations
 
                     b.HasKey("DirectMessageId");
 
-                    b.HasIndex("DirectId");
+                    b.HasIndex("DirectId")
+                        .IsUnique();
 
                     b.HasIndex("SenderId");
 
@@ -293,19 +300,6 @@ namespace DDApp.API.Migrations
                     b.ToTable("Avatars", (string)null);
                 });
 
-            modelBuilder.Entity("DDApp.DAL.Entites.DirectDir.DirectImage", b =>
-                {
-                    b.HasBaseType("DDApp.DAL.Entites.Attach");
-
-                    b.Property<Guid>("DirectId")
-                        .HasColumnType("uuid");
-
-                    b.HasIndex("DirectId")
-                        .IsUnique();
-
-                    b.ToTable("DirectImage");
-                });
-
             modelBuilder.Entity("DDApp.DAL.Entites.DirectFiles", b =>
                 {
                     b.HasBaseType("DDApp.DAL.Entites.Attach");
@@ -347,8 +341,8 @@ namespace DDApp.API.Migrations
             modelBuilder.Entity("DDApp.DAL.Entites.DirectMembers", b =>
                 {
                     b.HasOne("DDApp.DAL.Entites.Direct", "Direct")
-                        .WithMany("DirectMembers")
-                        .HasForeignKey("DirectId")
+                        .WithOne("DirectMembers")
+                        .HasForeignKey("DDApp.DAL.Entites.DirectMembers", "DirectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -366,8 +360,8 @@ namespace DDApp.API.Migrations
             modelBuilder.Entity("DDApp.DAL.Entites.DirectMessages", b =>
                 {
                     b.HasOne("DDApp.DAL.Entites.Direct", "Direct")
-                        .WithMany("DirectMessages")
-                        .HasForeignKey("DirectId")
+                        .WithOne("DirectMessages")
+                        .HasForeignKey("DDApp.DAL.Entites.DirectMessages", "DirectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -497,23 +491,6 @@ namespace DDApp.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DDApp.DAL.Entites.DirectDir.DirectImage", b =>
-                {
-                    b.HasOne("DDApp.DAL.Entites.Direct", "DirectImg")
-                        .WithOne("DirectImage")
-                        .HasForeignKey("DDApp.DAL.Entites.DirectDir.DirectImage", "DirectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DDApp.DAL.Entites.Attach", null)
-                        .WithOne()
-                        .HasForeignKey("DDApp.DAL.Entites.DirectDir.DirectImage", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DirectImg");
-                });
-
             modelBuilder.Entity("DDApp.DAL.Entites.DirectFiles", b =>
                 {
                     b.HasOne("DDApp.DAL.Entites.DirectMessages", "DirectMessage")
@@ -550,9 +527,8 @@ namespace DDApp.API.Migrations
 
             modelBuilder.Entity("DDApp.DAL.Entites.Direct", b =>
                 {
-                    b.Navigation("DirectImage");
-
-                    b.Navigation("DirectMembers");
+                    b.Navigation("DirectMembers")
+                        .IsRequired();
 
                     b.Navigation("DirectMessages");
                 });

@@ -4,6 +4,7 @@ using DDApp.API.Models;
 using DDApp.API.Mapper.MapperActions;
 using DDApp.API.Models.MetaData;
 using DDApp.DAL.Entites;
+using DDApp.API.Models.Direct;
 
 namespace DDApp.API
 {
@@ -31,11 +32,25 @@ namespace DDApp.API
 
             CreateMap<PostFiles, ExternalPostFileLinkModel>().AfterMap<PostFileMapperAction>();
 
-            CreateMap<User, Models.Subscription.SubscriberModel>()
-                .ForMember(d => d.LastEntered, m => m.MapFrom(s => (s.Session == null || s.Session.Count == 0) ? s.Created : s.Session.Last().Created))
-                .ForMember(d => d.UserId, m => m.MapFrom(s => s.Id))
-                .ForMember(d => d.UserName, m => m.MapFrom(s => s.Name))
-                .AfterMap<SubscriptionAvatarMapperAction>();
+            CreateMap<Subscriptions, Models.Subscription.SubscriptionModel>()
+                .ForMember(d => d.LastEntered, m => m.MapFrom(s => (s.UserSubscription.Session == null || s.UserSubscription.Session.Count == 0) ? s.UserSubscription.Created : s.UserSubscription.Session.Last().Created))
+                .ForMember(d => d.UserId, m => m.MapFrom(s => s.UserSubscription.Id))
+                .ForMember(d => d.UserName, m => m.MapFrom(s => s.UserSubscription.Name))
+                .AfterMap<SubscriptionSubscriptionMapperAction>();
+
+            CreateMap<Subscriptions, Models.Subscription.SubscriberModel>()
+                .ForMember(d => d.LastEntered, m => m.MapFrom(s => (s.UserSubscriber.Session == null || s.UserSubscriber.Session.Count == 0) ? s.UserSubscriber.Created : s.UserSubscriber.Session.Last().Created))
+                .ForMember(d => d.UserId, m => m.MapFrom(s => s.UserSubscriber.Id))
+                .ForMember(d => d.UserName, m => m.MapFrom(s => s.UserSubscriber.Name))
+                .AfterMap<SubscriptionSubscriberMapperAction>();
+
+            CreateMap<Direct, DDApp.API.Models.Direct.DirectRequestWithSenderModel>()
+                .ForMember(x => x.DirectImage, m => m.MapFrom(s => s.DirectImage));
+
+            CreateMap<DirectRequestWithSenderModel, DirectModel>()
+                .ForMember(x => x.RecipientId, m => m.MapFrom(s => s.Recipient.Id))
+                .ForMember(x => x.RecipientUserName, m => m.MapFrom(s => s.Recipient.Name))
+                .AfterMap<DirectImageMapperAction>();
         }
     }
 }

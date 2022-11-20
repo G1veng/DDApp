@@ -29,6 +29,7 @@ namespace DDApp.API.Services
             var comments = await _context.PostComments
                 .AsNoTracking()
                 .Where(x => x.Post.Id == postId)
+                .OrderByDescending(x => x.Created)
                 .ProjectTo<PostCommentModel>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 

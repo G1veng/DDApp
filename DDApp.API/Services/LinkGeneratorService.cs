@@ -1,4 +1,5 @@
 ﻿using DDApp.DAL.Entites;
+using DDApp.DAL.Entites.DirectDir;
 
 namespace DDApp.API.Services
 {
@@ -7,10 +8,12 @@ namespace DDApp.API.Services
         private Func<Avatar?, string?>? _avatarLinkGenerator;
         private Func<PostFiles?, string?>? _postFileLinkGenerator;
         private Func<Guid?, string?>? _postAuthorAvatarLinkGenerator;
+        private Func<Attach?, string?>? _directImageLinkGenerator;
 
         public Func<Avatar?, string?>? AvatarLinkGenerator { get => _avatarLinkGenerator; set => _avatarLinkGenerator = value; }
         public Func<PostFiles?, string?>? PostFileLinkGenerator { get => _postFileLinkGenerator; set => _postFileLinkGenerator = value; }
         public Func<Guid?, string?>? PostAuthorAvatarLinkGenerator { get => _postAuthorAvatarLinkGenerator; set => _postAuthorAvatarLinkGenerator = value; }
+        public Func<Attach?, string?>? DirectImageLinkGenerator { get => _directImageLinkGenerator; set => _directImageLinkGenerator = value; }
 
         public LinkGeneratorService()
         {
@@ -18,11 +21,12 @@ namespace DDApp.API.Services
         }
 
         public void SetLinkGenerators(Func<Avatar?, string?>? avatarLinkGenerator, Func<PostFiles?, string?>? postFileLinkGenerator,
-            Func<Guid?, string?>? postAuthorAvatarLinkGenerator)
+            Func<Guid?, string?>? postAuthorAvatarLinkGenerator, Func<Attach?, string?>? directImageLinkGenerator)
         {
             _avatarLinkGenerator = avatarLinkGenerator;
             _postFileLinkGenerator = postFileLinkGenerator;
             _postAuthorAvatarLinkGenerator = postAuthorAvatarLinkGenerator;
+            _directImageLinkGenerator = directImageLinkGenerator;
         }
     }
 }

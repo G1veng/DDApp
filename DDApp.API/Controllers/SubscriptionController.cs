@@ -35,7 +35,7 @@ namespace DDApp.API.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<List<SubscriberModel>?> GetSubscriptions(int skip = 0, int take = 10)
+        public async Task<List<SubscriptionModel>?> GetSubscriptions(int skip = 0, int take = 10)
             => await _subscriptionService.GetSubscriptions(GetCurrentUserGuid(), skip, take);
 
 
