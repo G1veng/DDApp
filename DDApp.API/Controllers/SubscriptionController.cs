@@ -6,6 +6,7 @@ using DDApp.Common.Consts;
 using DDApp.Common.Extensions;
 using DDApp.API.Models.Subscription;
 using Microsoft.AspNetCore.Authorization;
+using DDApp.Common.Exceptions.Authorization;
 
 namespace DDApp.API.Controllers
 {
@@ -45,7 +46,7 @@ namespace DDApp.API.Controllers
 
             if (!Guid.TryParse(userIdString, out var userId))
             {
-                throw new AuthorizationException("You are not authorized");
+                throw new UserAuthorizationException();
             }
             else
             {
