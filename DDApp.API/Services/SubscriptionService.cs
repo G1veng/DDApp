@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DDApp.API.Models.Subscription;
 using DDApp.Common.Exceptions;
+using DDApp.Common.Exceptions.Forbidden;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
@@ -33,12 +34,12 @@ namespace DDApp.API.Services
         {
             if(subscriberId == subscriptionId)
             {
-                throw new UserException("Can't subscribe on yourself");
+                throw new UserSubscriptionForbiddentException();
             }
 
             if(await CheckUserExistById(subscriberId) == false || await CheckUserExistById(subscriptionId) == false)
             {
-                throw new UserException("User not found");
+                throw new UserNotFoundException();
             }
 
             var subscription = new Subscriptions

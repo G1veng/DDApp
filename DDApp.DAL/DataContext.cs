@@ -82,5 +82,6 @@ namespace DDApp.DAL
         public DbSet<Entites.DirectMessages> DirectMessages => Set<Entites.DirectMessages>();
         public DbSet<Entites.DirectMembers> DirectMembers => Set<Entites.DirectMembers>();
         public DbSet<Entites.DirectFiles> DirectFiles => Set<Entites.DirectFiles>();
+        public DbSet<Entites.DirectDir.DirectImages> DirectImages => Set<Entites.DirectDir.DirectImages>();
     }
 }

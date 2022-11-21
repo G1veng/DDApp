@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DDApp.Common.Exceptions
+namespace DDApp.Common.Exceptions.Authorization
 {
     public class AuthorizationException : Exception
     {
-        public AuthorizationException(string message) : base(message) { }
+        public string? Model { get; set; }
+        public override string Message => $"{Model} authorization failed";
     }
 }

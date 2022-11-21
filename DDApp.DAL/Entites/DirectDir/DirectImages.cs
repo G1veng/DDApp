@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DDApp.DAL.Entites.DirectDir
 {
-    public class DirectImage : Attach
+    public class DirectImages : Attach
     {
         public Guid DirectId { get; set; }
 

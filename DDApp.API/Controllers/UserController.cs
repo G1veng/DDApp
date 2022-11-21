@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using DDApp.Common.Exceptions;
 using DDApp.Common.Consts;
 using DDApp.Common.Extensions;
+using DDApp.Common.Exceptions.Forbidden;
+using DDApp.Common.Exceptions.Authorization;
 
 namespace DDApp.API.Controllers
 {
@@ -31,7 +33,7 @@ namespace DDApp.API.Controllers
         {
             if (await _userService.CheckUserExist(model.Email))
             {
-                throw new UserException("User is exist");
+                throw new UserCreationForbiddenException();
             }
                 
             await _userService.CreateUser(model);
@@ -59,7 +61,7 @@ namespace DDApp.API.Controllers
 
             if (!Guid.TryParse(userIdString, out var userId))
             {
-                throw new AuthorizationException("You are not authorized");
+                throw new UserAuthorizationException();
             }
             else
             {

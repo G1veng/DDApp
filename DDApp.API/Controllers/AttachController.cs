@@ -35,7 +35,7 @@ namespace DDApp.API.Controllers
         [Route("{userId}")]
         [AllowAnonymous]
         public async Task<FileStreamResult?> GetUserAvatarByUserId(Guid userId, bool download)
-            => GetFile(await _attachmentsService.GetUserAvatarByUserId(userId), download);
+            => GetFile(await _attachmentsService.GetUserAvatarByUserIdAsync(userId), download);
 
         [HttpGet]
         [Route("{attachId}")]
@@ -54,6 +54,12 @@ namespace DDApp.API.Controllers
         [AllowAnonymous]
         public async Task<FileStreamResult> GetDirectPictureByAttchId(Guid directPictureId, bool download)
             => GetFile(await _attachmentsService.GetImageAttachByAttachId(directPictureId), download);
+
+        [HttpGet]
+        [Route("{directFileId}")]
+        [AllowAnonymous]
+        public async Task<FileStreamResult> GetDirectFileByAttchId(Guid directFileId, bool download)
+            => GetFile(await _attachmentsService.GetImageAttachByAttachId(directFileId), download);
 
 
         private FileStreamResult GetFile(Attach attach, bool download = false)

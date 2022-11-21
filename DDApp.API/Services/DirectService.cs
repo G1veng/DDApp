@@ -3,6 +3,7 @@ using DDApp.API.Models.Direct;
 using DDApp.Common.Exceptions;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
+using DDApp.DAL.Entites.DirectDir;
 using Microsoft.EntityFrameworkCore;
 
 namespace DDApp.API.Services
@@ -20,41 +21,133 @@ namespace DDApp.API.Services
             _attachService = attachService;
         }
 
+        public async Task CreateDirectGroup(CreateDirectGroupModel model, Guid userId)
+        {
+            model.Members.Add(userId);
+
+            if (model.Members == null || model.Members.Count < 2)
+            {
+                throw new Exception("Not enough members");
+            }
+
+            model.Members.ForEach(async u =>
+            {
+                if (!(await CheckUserExistById(u)))
+                {
+                    throw new Exception("User not found");
+                }
+            });
+
+            if(model.Title == null || model.Title.Length == 0)
+            {
+                throw new Exception("Group title must be presented");
+            }
+
+            var direct = (await _context.Directs.AddAsync(new Direct
+            {
+                DirectId = new Guid(),
+                DirectTitle = model.Title,
+                IsDirectGroup = true,
+                Created = DateTimeOffset.UtcNow,
+            })).Entity;
+
+            if(model.GroupImage != null)
+            {
+                var filePath = _attachService.CopyImageVideoFile(model.GroupImage);
+
+                await _context.DirectImages.AddAsync(new DAL.Entites.DirectDir.DirectImages
+                {
+                    DirectId = direct.DirectId,
+                    Author = _context.Users.First(y => y.Id == userId),
+                    Name = model.GroupImage.Name,
+                    MimeType = model.GroupImage.MimeType,
+                    FilePath = filePath,
+                    Size = model.GroupImage.Size,
+                });
+            }
+
+            model.Members.ForEach(async x =>
+            {
+                await _context.DirectMembers.AddAsync(new DirectMembers
+                {
+                    DirectId = direct.DirectId,
+                    UserId = x,
+                });
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<DirectRequestModel> GetUserDirect(Guid directId, Guid senderId)
+        {
+            if((await _context.Directs.FirstOrDefaultAsync(x => x.DirectId == directId)) == null)
+            {
+                throw new Exception("Direct is not existing");
+            }
+
+            var res = new DirectRequestModel
+            {
+                DirectId = directId,
+                RecipientId = (await _context.DirectMembers.Include(y => y.User).FirstAsync(y => y.DirectId == directId && y.UserId != senderId)).UserId,
+            };
+
+            res.DirectMessages = await _context.DirectMessages
+                .Include(x => x.DirectFiles)
+                .Include(x => x.User)
+                .Select(x => _mapper.Map<DirectMessages, DirectMessageModel>(x))
+                .ToListAsync();
+
+            return res;
+        }
+
         public async Task<List<DirectModel>?> GetUserDirects(Guid userId)
         {
-            var directIds = await _context.DirectMembers.Where(x => x.UserId == userId).ToListAsync();
-
             var directs = await _context.Directs
                 .Include(x => x.DirectImage)
                 .Include(x => x.DirectMembers)
-                .Select(x => _mapper.Map<Direct, DirectRequestWithSenderModel>(x))
+                .Include(x => x.DirectMembers).ThenInclude(x => x.User)
+                .Include(x => x.DirectMembers).ThenInclude(x => x.User).ThenInclude(x => x.Avatar)
+                .Where(x => x.DirectMembers.Contains(new DirectMembers { DirectId = x.DirectId, UserId = userId }))
+                .Select(x => _mapper.Map<Direct, DirectModel>(x))
                 .ToListAsync();
-
-            var resDirects = new List<DirectModel>();
 
             directs.ForEach(async x =>
             {
-                x.Recipient = (await _context.DirectMembers.FirstAsync(x => x.DirectId == x.DirectId && x.UserId != userId)).User;
-                x.DirectImage = await _attachService.GetUserAvatarByUserId(x.Recipient.Id);
+                if(x.DirectMembers.Count == 1)
+                {
+                    var userAvatar = await _context.Avatars.FirstOrDefaultAsync(y => y.UserId == x.DirectMembers.First(x => x.DirectMember != userId).DirectMember);
 
-                resDirects.Add(_mapper.Map<DirectModel>(directs));
+                    if (userAvatar != null)
+                    {
+                        x.DirectImage = _mapper.Map<DirectImages, DirectImageModel>(new DirectImages
+                        {
+                            DirectId = x.DirectId,
+                            Id = userAvatar.Id,
+                            Size = userAvatar.Size,
+                            MimeType = userAvatar.MimeType,
+                            FilePath = userAvatar.FilePath,
+                            Name = userAvatar.Name,
+                        });
+                    }
+                }
             });
 
-            return resDirects;
+            return directs;
         }
 
         public async Task CreateDirectWithUser(Guid currentUserId, Guid recipientId)
         {
             if (await CheckUserExistById(currentUserId) == false || await CheckUserExistById(recipientId) == false)
             {
-                throw new UserException("User not found");
+                throw new UserNotFoundException();
             }
 
             var directExt = await _context.Directs
+                .Include(x => x.DirectMembers)
                 .FirstOrDefaultAsync(
-                    x =>
-                    x.DirectMembers.First(y => y.UserId == currentUserId).DirectId ==
-                    x.DirectMembers.First(y => y.UserId == recipientId).DirectId
+                    x => x.DirectMembers.Count == 2 
+                    && x.DirectMembers.Contains(new DirectMembers { UserId = currentUserId, DirectId = x.DirectId})
+                    && x.DirectMembers.Contains(new DirectMembers { UserId = recipientId, DirectId = x.DirectId })
                 );
 
             if(directExt != null)
@@ -68,13 +161,13 @@ namespace DDApp.API.Services
                 DirectTitle = "local",
             });
 
-            await _context.DirectMembers.AddAsync(new DirectMembers
+            _context.DirectMembers.Add(new DirectMembers
             {
                 DirectId = direct.Entity.DirectId,
                 UserId = currentUserId,
             });
 
-            await _context.DirectMembers.AddAsync(new DirectMembers
+            _context.DirectMembers.Add(new DirectMembers
             {
                 DirectId = direct.Entity.DirectId,
                 UserId = recipientId,
@@ -83,11 +176,11 @@ namespace DDApp.API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task SendDirectMessage(CreateDirectMessageModel model, Guid sender)
+        public async Task CreateDirectMessage(CreateDirectMessageModel model, Guid sender)
         {
-            if(model.Files == null && model.Message == null)
+            if((model.Files == null || model.Files?.Count == null) && (model.Message == null || model.Message == String.Empty))
             {
-                throw new Exception("One field must be filled");
+                throw new Exception("One field must be filled (messege or files)");
             }
 
             var message = (await _context.DirectMessages.AddAsync(new DirectMessages
@@ -100,14 +193,14 @@ namespace DDApp.API.Services
 
             if (model.Files != null) 
             {
-                model.Files.ForEach(async x =>
+                model.Files.ForEach(x =>
                 {
                     var filePath = _attachService.CopyImageVideoFile(x);
 
-                    await _context.DirectFiles.AddAsync(new DirectFiles
+                    _context.DirectFiles.Add(new DirectFiles
                     {
                         DirectMessagesId = message.DirectMessageId,
-                        Author = await _context.Users.FirstAsync(y => y.Id == sender),
+                        Author = _context.Users.First(y => y.Id == sender),
                         Name = x.Name,
                         MimeType = x.MimeType,
                         FilePath = filePath,
@@ -129,17 +222,6 @@ namespace DDApp.API.Services
             }
 
             return true;
-        }
-
-        private async Task<User> GetUserById(Guid id)
-        {
-            var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
-            if (user == null || user.IsActive == false)
-            {
-                throw new UserException("User not found");
-            }
-
-            return user;
         }
     }
 }

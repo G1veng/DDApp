@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace DDApp.Common.Exceptions
 {
-    public class FileException : Exception
+    public class UserNotFoundException : NotFoundException
     {
-        public FileException(string message) : base(message) { }
+        public UserNotFoundException()
+        {
+            Model = "User";
+        }
     }
 }

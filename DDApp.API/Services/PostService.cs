@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using DDApp.API.Models;
 using DDApp.Common.Exceptions;
+using DDApp.Common.Exceptions.NotFound;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,7 @@ namespace DDApp.API.Services
 
             if (post == null || post.IsActive == false)
             {
-                throw new NullArgumentException("Post not found");
+                throw new PostNotFoundException();
             }
 
             return _mapper.Map<PostModel>(post);
@@ -51,7 +52,7 @@ namespace DDApp.API.Services
 
             if (user == null || user.IsActive == false)
             {
-                throw new UserException("User not found");
+                throw new UserNotFoundException();
             }
             else
             {
@@ -94,10 +95,11 @@ namespace DDApp.API.Services
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(take)
-                .Include(x => x.Author)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
                 .Include(x => x.PostLikes)
+                .Include(x => x.Author)
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
                 .Select(x => _mapper.Map<Posts, PostModel>(x))
                 .ToListAsync();
 

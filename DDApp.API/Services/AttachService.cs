@@ -1,5 +1,8 @@
 ﻿using DDApp.API.Models;
 using DDApp.Common.Exceptions;
+using DDApp.Common.Exceptions.Forbidden;
+using DDApp.Common.Exceptions.NotFound;
+using DDApp.Common.Exceptions.UnsopportedMediaType;
 using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,28 +37,31 @@ namespace DDApp.API.Services
             var attach = await _context.Attaches.FirstOrDefaultAsync(x => x.Id == id);
             if (attach == null)
             {
-                throw new Common.Exceptions.FileException("Attach not found");
+                throw new AttachNotFoundException();
             }
 
             if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(attach.FilePath)))
             {
-                throw new WrongTypeException("File is not image format");
+                throw new NotImageFileException();
             }
 
             return attach;
         }
 
-        public async Task<Attach> GetUserAvatarByUserId(Guid userId)
+        public async Task<Attach> GetUserAvatarByUserIdAsync(Guid userId)
         {
             var avatar = await _context.Avatars.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if(avatar == null)
             {
-                throw new DDApp.Common.Exceptions.FileException("Avatar not dound exception");
+                throw new AvatarNotFoundException();
             }
 
             return avatar;
         }
+
+        public Attach? GetUserAvatarByUserId(Guid userId)
+            => _context.Avatars.FirstOrDefault(x => x.UserId == userId);
 
         public async Task<MetadataModel> UploadFile(IFormFile file)
         {
@@ -75,13 +81,13 @@ namespace DDApp.API.Services
 
             if (fileInfo.Exists)
             {
-                throw new FileException("File exists");
+                throw new FileExistsForbiddenException();
             }
             else
             {
                 if (fileInfo.Directory == null)
                 {
-                    throw new NullArgumentException("Temp is null");
+                    throw new Common.Exceptions.NotFound.DirectoryNotFoundException();
                 }
                 else
                 {
@@ -105,11 +111,11 @@ namespace DDApp.API.Services
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
             if (!tempFi.Exists)
             {
-                throw new Common.Exceptions.FileException("File not found");
+                throw new Common.Exceptions.NotFound.FileNotFoundException();
             }
             if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)))
             {
-                throw new WrongTypeException("File is not image");
+                throw new NotImageFileException();
             }
 
             var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString());
@@ -132,12 +138,12 @@ namespace DDApp.API.Services
             var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
             if (!tempFi.Exists)
             {
-                throw new Common.Exceptions.FileException("File not found");
+                throw new Common.Exceptions.NotFound.FileNotFoundException();
             }
             if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)) &&
                 !Common.MimeTypeHelper.CheckVideoMimeTypeByMimeType(model.MimeType))
             {
-                throw new WrongTypeException("File is not image or video");
+                throw new NotImageOrVideoException();
             }
 
             var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString());

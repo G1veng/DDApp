@@ -16,7 +16,7 @@ namespace DDApp.API.Mapper.MapperActions
 
         public void Process(DirectRequestWithSenderModel source, DirectModel destination, ResolutionContext context)
         {
-            destination.DirectImage = _directImageLinkHelper == null ? null : _directImageLinkHelper(source.DirectImage);
+            destination.DirectImage.Link = _directImageLinkHelper == null ? null : _directImageLinkHelper(source.DirectImage);
         }
     }
 }

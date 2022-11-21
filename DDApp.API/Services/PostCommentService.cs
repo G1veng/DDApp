@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using DDApp.API.Models;
 using DDApp.Common.Exceptions;
+using DDApp.Common.Exceptions.NotFound;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
@@ -44,13 +45,13 @@ namespace DDApp.API.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
             if (user == null || user.IsActive == false)
             {
-                throw new UserException("User not found");
+                throw new UserNotFoundException();
             }
 
             var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == model.PostId);
             if (post == null || post.IsActive == false)
             {
-                throw new NullArgumentException("Post not found");
+                throw new PostNotFoundException();
             }
 
             var comment = await _context.PostComments.AddAsync(new PostComments

@@ -1,4 +1,5 @@
 using DDApp.API;
+using DDApp.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -127,6 +128,8 @@ internal class Program {
         app.UseAuthorization();
 
         app.UseTokenValidator();
+
+        app.UserGlobalErrorWrapper();
 
         app.MapControllers();
         

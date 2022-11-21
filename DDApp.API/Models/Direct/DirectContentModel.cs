@@ -2,7 +2,7 @@
 {
     public class DirectContentModel
     {
-        public string? message { get; set; }
-        public List<string>? content { get; set; }
+        public string? Message { get; set; }
+        public List<string>? Content { get; set; }
     }
 }

@@ -16,6 +16,6 @@ namespace DDApp.DAL.Entites
 
         public virtual ICollection<DirectMessages>? DirectMessages { get; set; }
         public virtual ICollection<DirectMembers> DirectMembers { get; set; } = null!;
-        public virtual DirectImage? DirectImage { get; set; }
+        public virtual DirectImages? DirectImage { get; set; }
     }
 }

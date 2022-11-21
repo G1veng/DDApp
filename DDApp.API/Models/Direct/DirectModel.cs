@@ -2,9 +2,9 @@
 {
     public class DirectModel
     {
-        public Guid RecipientId { get; set; }
-        public string RecipientUserName { get; set; } = null!;
         public Guid DirectId { get; set; }
-        public string? DirectImage { get; set; }
+        public string DirectTitle { get; set; } = null!;
+        public List<DirectMemberModel> DirectMembers { get; set; } = null!;
+        public DirectImageModel DirectImage { get; set; } = null!;
     }
 }

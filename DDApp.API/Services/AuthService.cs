@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using DDApp.Common.Consts;
+using DDApp.Common.Exceptions.NotFound;
+using DDApp.Common.Exceptions.Authorization;
 
 namespace DDApp.API.Services
 {
@@ -61,12 +63,12 @@ namespace DDApp.API.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == login.ToLower());
             if (user == null || user.IsActive == false)
             {
-                throw new UserException("User not found");
+                throw new UserNotFoundException();
             }
 
             if (!DDApp.Common.HashHelper.Verify(password, user.PasswordHash))
             {
-                throw new WrongPasswordException("Wrong password");
+                throw new PasswordAuthorizetionException();
             }
 
             return user;
@@ -95,7 +97,7 @@ namespace DDApp.API.Services
 
             if (session == null)
             {
-                throw new SessionException("Session is not found");
+                throw new SessionNotFoundException();
             }
 
             return session;
@@ -107,7 +109,7 @@ namespace DDApp.API.Services
 
             if (session == null)
             {
-                throw new SessionException("Session is not found");
+                throw new SessionNotFoundException();
             }
 
             return session;
@@ -139,7 +141,7 @@ namespace DDApp.API.Services
                 var session = await GetSessionByRefreshToken(refreshTokenId);
                 if (!session.IsActive)
                 {
-                    throw new SessionException("session is not active");
+                    throw new AuthorizationException();
                 }
 
                 session.RefreshToken = Guid.NewGuid();

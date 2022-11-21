@@ -4,6 +4,7 @@ using DDApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using DDApp.DAL.Entites;
 using DDApp.Common.Exceptions;
+using DDApp.Common.Exceptions.NotFound;
 
 namespace DDApp.API.Services
 {
@@ -38,13 +39,13 @@ namespace DDApp.API.Services
             var user = await GetUserById(userId);
             if (user == null || user.IsActive == false)
             {
-                throw new UserException("User not found");
+                throw new UserNotFoundException();
             }
 
             var attach = _mapper.Map<AttachModel>(user.Avatar);
             if(attach == null)
             {
-                throw new FileException("Avatar not found");
+                throw new AvatarNotFoundException();
             }
             
             return attach;
@@ -113,7 +114,7 @@ namespace DDApp.API.Services
             var user = await _context.Users.Include(x => x.Avatar).FirstOrDefaultAsync(x => x.Id == id);
             if (user == null || user.IsActive == false)
             {
-                throw new UserException("User not found");
+                throw new UserNotFoundException();
             }
 
             return user;

@@ -15,7 +15,7 @@ namespace DDApp.API.Mapper.MapperActions
 
         public void Process(Posts source, PostModel destination, ResolutionContext context)
         {
-            destination.AuthorAvatar = _postFileLinkHelper == null ? null : _postFileLinkHelper(source.Author.Id);
+            destination.AuthorAvatar = _postFileLinkHelper == null ? null : _postFileLinkHelper(source.Author.Avatar?.UserId);
         }
     }
 }

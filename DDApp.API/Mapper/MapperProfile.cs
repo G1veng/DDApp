@@ -5,6 +5,7 @@ using DDApp.API.Mapper.MapperActions;
 using DDApp.API.Models.MetaData;
 using DDApp.DAL.Entites;
 using DDApp.API.Models.Direct;
+using DDApp.DAL.Entites.DirectDir;
 
 namespace DDApp.API
 {
@@ -44,13 +45,32 @@ namespace DDApp.API
                 .ForMember(d => d.UserName, m => m.MapFrom(s => s.UserSubscriber.Name))
                 .AfterMap<SubscriptionSubscriberMapperAction>();
 
-            CreateMap<Direct, DDApp.API.Models.Direct.DirectRequestWithSenderModel>()
+
+
+            /*CreateMap<Direct, DDApp.API.Models.Direct.DirectRequestWithSenderModel>()
                 .ForMember(x => x.DirectImage, m => m.MapFrom(s => s.DirectImage));
 
             CreateMap<DirectRequestWithSenderModel, DirectModel>()
                 .ForMember(x => x.RecipientId, m => m.MapFrom(s => s.Recipient.Id))
                 .ForMember(x => x.RecipientUserName, m => m.MapFrom(s => s.Recipient.Name))
-                .AfterMap<DirectImageMapperAction>();
+                .AfterMap<DirectImageMapperAction>();*/
+
+            /*CreateMap<DirectMessages, DirectMessageModel>()
+                .ForMember(x => x.SenderName, m => m.MapFrom(s => s.User.Name));
+
+            CreateMap<DirectFiles, ExternalDirectFileLinkModel>()
+                .AfterMap<DirectMessageFileMapperAction>();
+
+            CreateMap<Direct, DirectGroupRequestModel>();*/
+
+            CreateMap<Direct, DirectModel>()
+                .BeforeMap<DirectModelImageMapperAction>();
+
+            CreateMap<DirectImages, DirectImageModel>()
+                .AfterMap<DirectGroupImageMapperAction>();
+
+            CreateMap<DirectMembers, DirectMemberModel>()
+                .ForMember(d => d.DirectMember, m => m.MapFrom(s => s.UserId));
         }
     }
 }
