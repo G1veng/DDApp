@@ -20,7 +20,13 @@ namespace DDApp.API.Services
         }
 
         public async Task<List<SubscriberModel>> GetSubscribers(Guid userId, int skip, int take)
-            => await _context.Subscriptions
+        {
+            if(!(await CheckUserExistById(userId)))
+            {
+                throw new UserNotFoundException();
+            }
+
+            return await _context.Subscriptions
                 .AsNoTracking()
                 .Skip(skip)
                 .Take(take)
@@ -29,6 +35,7 @@ namespace DDApp.API.Services
                 .Include(x => x.UserSubscriber).ThenInclude(x => x.Session)
                 .Select(x => _mapper.Map<SubscriberModel>(x))
                 .ToListAsync();
+        }
 
         public async Task ChangeSubscriptionStateOnUserById(Guid subscriberId, Guid subscriptionId)
         {
@@ -61,7 +68,13 @@ namespace DDApp.API.Services
         }
 
         public async Task<List<SubscriptionModel>> GetSubscriptions(Guid userId, int skip, int take)
-            => await _context.Subscriptions
+        {
+            if (!(await CheckUserExistById(userId)))
+            {
+                throw new UserNotFoundException();
+            }
+
+            return await _context.Subscriptions
                 .AsNoTracking()
                 .Skip(skip)
                 .Take(take)
@@ -70,11 +83,12 @@ namespace DDApp.API.Services
                 .Include(x => x.UserSubscription).ThenInclude(x => x.Session)
                 .Select(x => _mapper.Map<SubscriptionModel>(x))
                 .ToListAsync();
+        }
 
 
         private async Task<bool> CheckUserExistById(Guid userId)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId);
             if (user == null || user.IsActive == false || user == default)
             {
                 return false;

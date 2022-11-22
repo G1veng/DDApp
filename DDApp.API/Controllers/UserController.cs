@@ -30,14 +30,7 @@ namespace DDApp.API.Controllers
         [ApiExplorerSettings(GroupName = "Auth")]
         [AllowAnonymous]
         public async Task CreateUser(CreateUserModel model) 
-        {
-            if (await _userService.CheckUserExist(model.Email))
-            {
-                throw new UserCreationForbiddenException();
-            }
-                
-            await _userService.CreateUser(model);
-        }
+            => await _userService.CreateUser(model);
 
         [HttpPost]
         [Authorize]
@@ -46,7 +39,7 @@ namespace DDApp.API.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<List<UserWithLinkModel>> GetUsers()
+        public async Task<List<UserWithLinkModel>?> GetUsers()
             => await _userService.GetUsers();
 
         [HttpGet]

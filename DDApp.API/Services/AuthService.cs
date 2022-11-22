@@ -66,7 +66,7 @@ namespace DDApp.API.Services
                 throw new UserNotFoundException();
             }
 
-            if (!DDApp.Common.HashHelper.Verify(password, user.PasswordHash))
+            if (!Common.HashHelper.Verify(password, user.PasswordHash))
             {
                 throw new PasswordAuthorizetionException();
             }

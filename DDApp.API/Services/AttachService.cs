@@ -1,5 +1,4 @@
 ﻿using DDApp.API.Models;
-using DDApp.Common.Exceptions;
 using DDApp.Common.Exceptions.Forbidden;
 using DDApp.Common.Exceptions.NotFound;
 using DDApp.Common.Exceptions.UnsopportedMediaType;
@@ -19,6 +18,11 @@ namespace DDApp.API.Services
 
         public async Task<List<MetadataModel>> UploadFiles(List<IFormFile> files)
         {
+            if (files.Count == 0)
+            {
+                throw new Common.Exceptions.NotFound.FileNotFoundException();
+            }
+
             var res = new List<MetadataModel>();
 
             foreach (var file in files)
@@ -40,7 +44,7 @@ namespace DDApp.API.Services
                 throw new AttachNotFoundException();
             }
 
-            if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(attach.FilePath)))
+            if (!Common.MimeTypeHelper.CheckImageMimeType(File.ReadAllBytes(attach.FilePath)))
             {
                 throw new NotImageFileException();
             }
@@ -59,9 +63,6 @@ namespace DDApp.API.Services
 
             return avatar;
         }
-
-        public Attach? GetUserAvatarByUserId(Guid userId)
-            => _context.Avatars.FirstOrDefault(x => x.UserId == userId);
 
         public async Task<MetadataModel> UploadFile(IFormFile file)
         {
@@ -97,7 +98,7 @@ namespace DDApp.API.Services
                     }
                 }
 
-                using (var stream = System.IO.File.Create(newPath))
+                using (var stream = File.Create(newPath))
                 {
                     await file.CopyToAsync(stream);
                 }
@@ -113,7 +114,7 @@ namespace DDApp.API.Services
             {
                 throw new Common.Exceptions.NotFound.FileNotFoundException();
             }
-            if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)))
+            if (!Common.MimeTypeHelper.CheckImageMimeType(File.ReadAllBytes(tempFi.FullName)))
             {
                 throw new NotImageFileException();
             }
@@ -126,7 +127,7 @@ namespace DDApp.API.Services
                 destFi.Directory.Create();
             }
 
-            System.IO.File.Copy(tempFi.FullName, path, true);
+            File.Copy(tempFi.FullName, path, true);
 
             tempFi.Delete();
 
@@ -140,7 +141,7 @@ namespace DDApp.API.Services
             {
                 throw new Common.Exceptions.NotFound.FileNotFoundException();
             }
-            if (!Common.MimeTypeHelper.CheckImageMimeType(System.IO.File.ReadAllBytes(tempFi.FullName)) &&
+            if (!Common.MimeTypeHelper.CheckImageMimeType(File.ReadAllBytes(tempFi.FullName)) &&
                 !Common.MimeTypeHelper.CheckVideoMimeTypeByMimeType(model.MimeType))
             {
                 throw new NotImageOrVideoException();
@@ -154,7 +155,7 @@ namespace DDApp.API.Services
                 destFi.Directory.Create();
             }
 
-            System.IO.File.Copy(tempFi.FullName, path, true);
+            File.Copy(tempFi.FullName, path, true);
 
             tempFi.Delete();
 

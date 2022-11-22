@@ -9,6 +9,6 @@ namespace DDApp.Common.Exceptions
     public class NotFoundException : Exception 
     {
         public string? Model { get; set; }
-        public override string Message => $"{Model} is not found";
+        public override string Message => $"{Model} not found";
     } 
 }

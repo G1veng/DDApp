@@ -32,7 +32,7 @@ namespace DDApp.API.Controllers
             => await _postCommentService.ChangePostCommentLikeState(commentId, GetCurrentUserGuid());
         [HttpGet]
         [Authorize]
-        public async Task<List<PostCommentModel>> GetPostComments(Guid postId)
+        public async Task<List<PostCommentModel>?> GetPostComments(Guid postId)
             => await _postCommentService.GetPostCommentsByPostId(postId);
 
 

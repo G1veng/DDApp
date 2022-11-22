@@ -26,8 +26,8 @@ namespace DDApp.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task ChangeSubscriptionStateOnUser(Guid subscriptionId)
-            => await _subscriptionService.ChangeSubscriptionStateOnUserById(GetCurrentUserGuid(), subscriptionId);
+        public async Task ChangeSubscriptionStateOnUser(Guid userId)
+            => await _subscriptionService.ChangeSubscriptionStateOnUserById(GetCurrentUserGuid(), userId);
 
         [HttpGet]
         [Authorize]

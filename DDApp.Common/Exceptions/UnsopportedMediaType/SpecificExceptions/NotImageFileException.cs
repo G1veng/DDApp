@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace DDApp.Common.Exceptions.UnsopportedMediaType
 {
-    public class NotImageOrVideoException : UnsopportedMediaTypeException
+    public class NotImageFileException : UnsopportedMediaTypeException
     {
-        public NotImageOrVideoException()
+        public NotImageFileException()
         {
-            Model = "Image or video";
+            Model = "image";
         }
     }
 }

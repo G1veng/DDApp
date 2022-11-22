@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
 using DDApp.API.Models.Direct;
 using DDApp.Common.Exceptions;
+using DDApp.Common.Exceptions.Forbidden;
+using DDApp.Common.Exceptions.NotFound;
+using DDApp.Common.Exceptions.UnprocessableEntity;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using DDApp.DAL.Entites.DirectDir;
 using Microsoft.EntityFrameworkCore;
+using DDApp.Common.Consts;
 
 namespace DDApp.API.Services
 {
@@ -27,20 +31,20 @@ namespace DDApp.API.Services
 
             if (model.Members == null || model.Members.Count < 2)
             {
-                throw new Exception("Not enough members");
+                throw new MembresCountUnprocessableEntityException();
             }
 
             model.Members.ForEach(async u =>
             {
                 if (!(await CheckUserExistById(u)))
                 {
-                    throw new Exception("User not found");
+                    throw new UserNotFoundException();
                 }
             });
 
-            if(model.Title == null || model.Title.Length == 0)
+            if(model.Title == default || model.Title.Length == 0)
             {
-                throw new Exception("Group title must be presented");
+                throw new GroupTitleUnprocessableEntityException();
             }
 
             var direct = (await _context.Directs.AddAsync(new Direct
@@ -53,9 +57,9 @@ namespace DDApp.API.Services
 
             if(model.GroupImage != null)
             {
-                var filePath = _attachService.CopyImageVideoFile(model.GroupImage);
+                var filePath = _attachService.CopyImageFile(model.GroupImage);
 
-                await _context.DirectImages.AddAsync(new DAL.Entites.DirectDir.DirectImages
+                await _context.DirectImages.AddAsync(new DirectImages
                 {
                     DirectId = direct.DirectId,
                     Author = _context.Users.First(y => y.Id == userId),
@@ -80,20 +84,27 @@ namespace DDApp.API.Services
 
         public async Task<DirectRequestModel> GetUserDirect(Guid directId, Guid senderId)
         {
-            if((await _context.Directs.FirstOrDefaultAsync(x => x.DirectId == directId)) == null)
+            if((await _context.Directs.AsNoTracking().FirstOrDefaultAsync(x => x.DirectId == directId)) == null)
             {
-                throw new Exception("Direct is not existing");
+                throw new DirectNotFoundException();
+            }
+
+            if (!(await CheckUserExistById(senderId)))
+            {
+                throw new UserNotFoundException();
             }
 
             var res = new DirectRequestModel
             {
                 DirectId = directId,
-                RecipientId = (await _context.DirectMembers.Include(y => y.User).FirstAsync(y => y.DirectId == directId && y.UserId != senderId)).UserId,
+                RecipientId = (await _context.DirectMembers.AsNoTracking().Include(y => y.User).FirstAsync(y => y.DirectId == directId && y.UserId != senderId)).UserId,
             };
 
             res.DirectMessages = await _context.DirectMessages
+                .AsNoTracking()
                 .Include(x => x.DirectFiles)
                 .Include(x => x.User)
+                .Where(x => x.DirectId == directId)
                 .Select(x => _mapper.Map<DirectMessages, DirectMessageModel>(x))
                 .ToListAsync();
 
@@ -103,6 +114,7 @@ namespace DDApp.API.Services
         public async Task<List<DirectModel>?> GetUserDirects(Guid userId)
         {
             var directs = await _context.Directs
+                .AsNoTracking()
                 .Include(x => x.DirectImage)
                 .Include(x => x.DirectMembers)
                 .Include(x => x.DirectMembers).ThenInclude(x => x.User)
@@ -111,17 +123,19 @@ namespace DDApp.API.Services
                 .Select(x => _mapper.Map<Direct, DirectModel>(x))
                 .ToListAsync();
 
-            directs.ForEach(async x =>
+            directs.ForEach(d =>
             {
-                if(x.DirectMembers.Count == 1)
+                if(d.DirectMembers.Count == 2)
                 {
-                    var userAvatar = await _context.Avatars.FirstOrDefaultAsync(y => y.UserId == x.DirectMembers.First(x => x.DirectMember != userId).DirectMember);
+                    var recipient = d.DirectMembers.First(m => m.DirectMember != userId).DirectMember;
+
+                    var userAvatar = _context.Avatars.AsNoTracking().FirstOrDefault(u => u.UserId == recipient);
 
                     if (userAvatar != null)
                     {
-                        x.DirectImage = _mapper.Map<DirectImages, DirectImageModel>(new DirectImages
+                        d.DirectImage = _mapper.Map<DirectImages, DirectImageModel>(new DirectImages
                         {
-                            DirectId = x.DirectId,
+                            DirectId = d.DirectId,
                             Id = userAvatar.Id,
                             Size = userAvatar.Size,
                             MimeType = userAvatar.MimeType,
@@ -142,23 +156,21 @@ namespace DDApp.API.Services
                 throw new UserNotFoundException();
             }
 
-            var directExt = await _context.Directs
+            if((await _context.Directs
+                .AsNoTracking()
                 .Include(x => x.DirectMembers)
-                .FirstOrDefaultAsync(
-                    x => x.DirectMembers.Count == 2 
-                    && x.DirectMembers.Contains(new DirectMembers { UserId = currentUserId, DirectId = x.DirectId})
-                    && x.DirectMembers.Contains(new DirectMembers { UserId = recipientId, DirectId = x.DirectId })
-                );
-
-            if(directExt != null)
+                .FirstOrDefaultAsync(x => x.DirectMembers.Count == 2
+                    && x.DirectMembers.Contains(new DirectMembers { UserId = currentUserId, DirectId = x.DirectId })
+                    && x.DirectMembers.Contains(new DirectMembers { UserId = recipientId, DirectId = x.DirectId })))
+            != null)
             {
-                throw new Exception("Direct already exists");
+                throw new DirectExistsForbiddenException();
             }
 
             var direct = await _context.Directs.AddAsync(new Direct
             {
                 DirectId = new Guid(),
-                DirectTitle = "local",
+                DirectTitle = DefaultGroupTitle.Title,
             });
 
             _context.DirectMembers.Add(new DirectMembers
@@ -180,7 +192,7 @@ namespace DDApp.API.Services
         {
             if((model.Files == null || model.Files?.Count == null) && (model.Message == null || model.Message == String.Empty))
             {
-                throw new Exception("One field must be filled (messege or files)");
+                throw new MessageOrFilesUnprocessableEntityException();
             }
 
             var message = (await _context.DirectMessages.AddAsync(new DirectMessages
@@ -215,7 +227,7 @@ namespace DDApp.API.Services
 
         private async Task<bool> CheckUserExistById(Guid userId)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId);
             if (user == null || user.IsActive == false || user == default)
             {
                 return false;

@@ -3,6 +3,7 @@ using DDApp.Common.Exceptions.Authorization;
 using DDApp.Common.Exceptions.Forbidden;
 using DDApp.Common.Exceptions.UnsopportedMediaType;
 using Microsoft.IdentityModel.Tokens;
+using DDApp.Common.Exceptions.UnprocessableEntity;
 
 namespace DDApp.API.Middlewares
 {
@@ -44,6 +45,11 @@ namespace DDApp.API.Middlewares
             catch(UnsopportedMediaTypeException ex)
             {
                 context.Response.StatusCode = 415;
+                await context.Response.WriteAsJsonAsync(ex.Message);
+            }
+            catch(UnprocessableEntityException ex)
+            {
+                context.Response.StatusCode = 422;
                 await context.Response.WriteAsJsonAsync(ex.Message);
             }
         }

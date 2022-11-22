@@ -22,15 +22,8 @@ namespace DDApp.API.Controllers
         [DisableRequestSizeLimit]
         [Authorize]
         public async Task<List<MetadataModel>> UploadFiles([FromForm] List<IFormFile> files)
-        {
-            if(files.Count == 0)
-            {
-                throw new DDApp.Common.Exceptions.NotFound.FileNotFoundException();
-            }
-
-            return await _attachmentsService.UploadFiles(files);
-        }
-
+            => await _attachmentsService.UploadFiles(files);
+        
         [HttpGet]
         [Route("{userId}")]
         [AllowAnonymous]

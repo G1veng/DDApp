@@ -25,16 +25,19 @@ namespace DDApp.API.Services
         /// <summary>
         /// Возвращает все комментарии к определенному посту.
         /// </summary>
-        public async Task<List<PostCommentModel>> GetPostCommentsByPostId(Guid postId)
+        public async Task<List<PostCommentModel>?> GetPostCommentsByPostId(Guid postId)
         {
-            var comments = await _context.PostComments
+            if((await _context.Posts.FirstOrDefaultAsync(x => x.Id == postId) == null))
+            {
+                throw new PostNotFoundException();
+            }
+
+            return await _context.PostComments
                 .AsNoTracking()
                 .Where(x => x.Post.Id == postId)
                 .OrderByDescending(x => x.Created)
                 .ProjectTo<PostCommentModel>(_mapper.ConfigurationProvider)
                 .ToListAsync();
-
-            return comments;
         }
 
         /// <summary>
@@ -71,6 +74,11 @@ namespace DDApp.API.Services
         /// </summary>
         public async Task ChangePostCommentLikeState(Guid postCommentId, Guid userId)
         {
+            if((await _context.PostComments.FirstOrDefaultAsync(x => x.Id == postCommentId)) == null)
+            {
+                throw new PostCommentNotFoundException();
+            }
+
             var like = new PostCommentLikes
             {
                 UserId = userId,

@@ -6,6 +6,7 @@ using DDApp.Common.Exceptions.NotFound;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
+using DDApp.API.Models.Subscription;
 
 namespace DDApp.API.Services
 {
@@ -86,11 +87,37 @@ namespace DDApp.API.Services
             }
         }
 
+        public async Task<List<PostModel>?> GetSubscriptionsPosts(Guid userId, int skip, int take)
+        {
+            var subscriptions = await _context.Subscriptions
+                .AsNoTracking()
+                .Where(x => x.SubscriberId == userId)
+                .Select(x => _mapper.Map<Subscriptions, OnlySubscriptionModel>(x))
+                .ToListAsync();
+
+            var posts = await _context.Posts
+                .AsNoTracking()
+                .Skip(skip)
+                .Take(take)
+                .Include(x => x.PostFiles)
+                .Include(x => x.Comments)
+                .Include(x => x.PostLikes)
+                .Include(x => x.Author)
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                .Where(x => x.IsActive && subscriptions.FirstOrDefault(y => x.Author.Id == y.SubscriptionId) != default)
+                .OrderByDescending(x => x.Created)
+                .Select(x => _mapper.Map<Posts, PostModel>(x))
+                .ToListAsync();
+
+            return posts;
+        }
+
         /// <summary>
         /// Возвращает все посты.
         /// </summary>
         public async Task<List<PostModel>> GetPosts(int skip, int take) {
-            var posts = await _context.Posts.AsNoTracking()
+            var posts = await _context.Posts
+                .AsNoTracking()
                 .Where(x => x.IsActive)
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
@@ -105,7 +132,7 @@ namespace DDApp.API.Services
 
             if(posts == null || posts == default)
             {
-                throw new Exception("Posts not found"); //Надо ли????
+                throw new PostNotFoundException();
             }
 
             return posts;

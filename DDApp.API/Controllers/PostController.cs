@@ -30,6 +30,11 @@ namespace DDApp.API.Controllers
                 x => Url.ControllerAction<AttachController>(nameof(AttachController.GetPostPictureByAttchId), new { postContentId = x?.Id });
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<List<PostModel>?> GetSubscriptionPosts(int skip = 0, int take = 10)
+            => await _postService.GetSubscriptionsPosts(GetCurrentUserGuid(), skip, take);
+
         [HttpPost]
         [Authorize]
         public async Task CreatePost(CreatePostModel model)
