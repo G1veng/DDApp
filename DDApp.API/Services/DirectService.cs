@@ -25,6 +25,9 @@ namespace DDApp.API.Services
             _attachService = attachService;
         }
 
+        /// <summary>
+        /// Создают директ группу
+        /// </summary>
         public async Task CreateDirectGroup(CreateDirectGroupModel model, Guid userId)
         {
             model.Members.Add(userId);
@@ -82,6 +85,9 @@ namespace DDApp.API.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Возвращает дерект пользователя
+        /// </summary>
         public async Task<DirectRequestModel> GetUserDirect(Guid directId, Guid senderId)
         {
             if((await _context.Directs.AsNoTracking().FirstOrDefaultAsync(x => x.DirectId == directId)) == null)
@@ -111,6 +117,9 @@ namespace DDApp.API.Services
             return res;
         }
 
+        /// <summary>
+        /// Возвращает список директов пользователя
+        /// </summary>
         public async Task<List<DirectModel>?> GetUserDirects(Guid userId)
         {
             var directs = await _context.Directs
@@ -149,6 +158,9 @@ namespace DDApp.API.Services
             return directs;
         }
 
+        /// <summary>
+        /// Создает директ (один на один) с указанным пользователем
+        /// </summary>
         public async Task CreateDirectWithUser(Guid currentUserId, Guid recipientId)
         {
             if (await CheckUserExistById(currentUserId) == false || await CheckUserExistById(recipientId) == false)
@@ -188,6 +200,9 @@ namespace DDApp.API.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Отправляет сообщение в выбранный директ
+        /// </summary>
         public async Task CreateDirectMessage(CreateDirectMessageModel model, Guid sender)
         {
             if((model.Files == null || model.Files?.Count == null) && (model.Message == null || model.Message == String.Empty))

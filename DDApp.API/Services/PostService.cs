@@ -7,6 +7,7 @@ using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
 using DDApp.API.Models.Subscription;
+using DDApp.Common.Exceptions.Authorization;
 
 namespace DDApp.API.Services
 {
@@ -33,6 +34,7 @@ namespace DDApp.API.Services
                 .Include(x => x.Author).ThenInclude(x => x.Avatar)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
+                .Where(x => x.IsActive)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (post == null || post.IsActive == false)
@@ -87,6 +89,31 @@ namespace DDApp.API.Services
             }
         }
 
+        /// <summary>
+        /// Удаляет выбранный пост
+        /// </summary>
+        public async Task DeletePost(Guid postId, Guid userId)
+        {
+            var post = await _context.Posts.Include(x => x.Author).FirstOrDefaultAsync(x => x.Id == postId);
+
+            if(post == default || post == null || post.IsActive == false)
+            {
+                throw new PostNotFoundException();
+            }
+
+            if(post.Author.Id != userId)
+            {
+                throw new UserAuthorizationException();
+            }
+
+            post.IsActive = false;
+
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Возвращает посты, созданные подписками данного пользователя
+        /// </summary>
         public async Task<List<PostModel>?> GetSubscriptionsPosts(Guid userId, int skip, int take)
         {
             var subscriptions = await _context.Subscriptions

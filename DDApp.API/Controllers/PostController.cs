@@ -33,17 +33,17 @@ namespace DDApp.API.Controllers
         [HttpGet]
         [Authorize]
         public async Task<List<PostModel>?> GetSubscriptionPosts(int skip = 0, int take = 10)
-            => await _postService.GetSubscriptionsPosts(GetCurrentUserGuid(), skip, take);
+            => await _postService.GetSubscriptionsPosts(GetCurrentUserId(), skip, take);
 
         [HttpPost]
         [Authorize]
         public async Task CreatePost(CreatePostModel model)
-            => await _postService.CreatePost(GetCurrentUserGuid(), model);
+            => await _postService.CreatePost(GetCurrentUserId(), model);
 
         [HttpPost]
         [Authorize]
         public async Task ChangePostLikeState(Guid postId)
-            => await _postService.ChangePostLikeState(postId, GetCurrentUserGuid());
+            => await _postService.ChangePostLikeState(postId, GetCurrentUserId());
 
         [HttpGet]
         [Authorize]
@@ -55,8 +55,13 @@ namespace DDApp.API.Controllers
         public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)
             => await _postService.GetPosts(skip, take);
 
+        [HttpDelete]
+        [Authorize]
+        public async Task DeletePost(Guid postId)
+            => await _postService.DeletePost(postId, GetCurrentUserId());
 
-        private Guid GetCurrentUserGuid()
+
+        private Guid GetCurrentUserId()
         {
             var userIdString = User.Claims.FirstOrDefault(x => x.Type == Claims.Id)?.Value;
 

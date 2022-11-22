@@ -19,6 +19,9 @@ namespace DDApp.API.Services
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Получить всех подписчиков пользователя
+        /// </summary>
         public async Task<List<SubscriberModel>> GetSubscribers(Guid userId, int skip, int take)
         {
             if(!(await CheckUserExistById(userId)))
@@ -37,6 +40,9 @@ namespace DDApp.API.Services
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Подписаться или отписать от пользователя в зависимости от текущего состояния
+        /// </summary>
         public async Task ChangeSubscriptionStateOnUserById(Guid subscriberId, Guid subscriptionId)
         {
             if(subscriberId == subscriptionId)
@@ -67,6 +73,9 @@ namespace DDApp.API.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Возвращает все подписки пользвователя
+        /// </summary>
         public async Task<List<SubscriptionModel>> GetSubscriptions(Guid userId, int skip, int take)
         {
             if (!(await CheckUserExistById(userId)))

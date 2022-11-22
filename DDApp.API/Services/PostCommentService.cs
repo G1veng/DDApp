@@ -6,6 +6,7 @@ using DDApp.Common.Exceptions.NotFound;
 using DDApp.DAL;
 using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
+using DDApp.Common.Exceptions.Authorization;
 
 namespace DDApp.API.Services
 {
@@ -27,7 +28,9 @@ namespace DDApp.API.Services
         /// </summary>
         public async Task<List<PostCommentModel>?> GetPostCommentsByPostId(Guid postId)
         {
-            if((await _context.Posts.FirstOrDefaultAsync(x => x.Id == postId) == null))
+            var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == postId);
+
+            if (post == null || post == default)
             {
                 throw new PostNotFoundException();
             }
@@ -64,6 +67,33 @@ namespace DDApp.API.Services
                 Author = user,
                 Post = post,
             });
+
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Удаляет комментарий к посту по его id
+        /// </summary>
+        public async Task DeletePostComment(Guid postCommentId, Guid userId)
+        {
+            var postComment = await _context.PostComments.Include(x => x.Author).Include(x => x.Post).ThenInclude(x => x.Author).FirstOrDefaultAsync(x => x.Id == postCommentId);
+
+            if(postComment == null || postComment == default || !postComment.IsActive)
+            {
+                throw new PostCommentNotFoundException();
+            }
+
+            if (!postComment.Post.IsActive)
+            {
+                throw new PostNotFoundException();
+            }
+
+            if(postComment.Author.Id != userId || postComment.Post.Author.Id != userId)
+            {
+                throw new UserAuthorizationException();
+            }
+
+            postComment.IsActive = false;
 
             await _context.SaveChangesAsync();
         }
