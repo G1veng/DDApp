@@ -13,6 +13,7 @@ namespace DDApp.API.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     [ApiExplorerSettings(GroupName = "Api")]
+    [Authorize]
     public class SubscriptionController : ControllerBase
     {
         SubscriptionService _subscriptionService;
@@ -25,17 +26,14 @@ namespace DDApp.API.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task ChangeSubscriptionStateOnUser(Guid userId)
             => await _subscriptionService.ChangeSubscriptionStateOnUserById(GetCurrentUserGuid(), userId);
 
         [HttpGet]
-        [Authorize]
         public async Task<List<SubscriberModel>?> GetSubscribers(int skip = 0, int take = 10)
             => await _subscriptionService.GetSubscribers(GetCurrentUserGuid(), skip, take);
 
         [HttpGet]
-        [Authorize]
         public async Task<List<SubscriptionModel>?> GetSubscriptions(int skip = 0, int take = 10)
             => await _subscriptionService.GetSubscriptions(GetCurrentUserGuid(), skip, take);
 

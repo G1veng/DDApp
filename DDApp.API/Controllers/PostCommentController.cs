@@ -12,6 +12,7 @@ namespace DDApp.API.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     [ApiExplorerSettings(GroupName = "Api")]
+    [Authorize]
     public class PostCommentController : ControllerBase
     {
         private PostCommentService _postCommentService;
@@ -22,21 +23,18 @@ namespace DDApp.API.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task CreatePostComment(CreatePostCommentModel model)
             => await _postCommentService.CreatePostComment(GetCurrentUserId(), model);
 
         [HttpPost]
-        [Authorize]
         public async Task ChangePostCommentLikeState(Guid commentId)
             => await _postCommentService.ChangePostCommentLikeState(commentId, GetCurrentUserId());
+
         [HttpGet]
-        [Authorize]
         public async Task<List<PostCommentModel>?> GetPostComments(Guid postId)
             => await _postCommentService.GetPostCommentsByPostId(postId);
 
         [HttpDelete]
-        [Authorize]
         public async Task DeletePostComment(Guid postCommentId)
             => await _postCommentService.DeletePostComment(postCommentId, GetCurrentUserId());
 

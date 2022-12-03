@@ -9,6 +9,7 @@ namespace DDApp.API.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     [ApiExplorerSettings(GroupName = "Api")]
+    [Authorize]
     public class AttachController : ControllerBase
     {
         private readonly AttachService _attachmentsService;
@@ -20,37 +21,31 @@ namespace DDApp.API.Controllers
 
         [HttpPost]
         [DisableRequestSizeLimit]
-        [Authorize]
         public async Task<List<MetadataModel>> UploadFiles([FromForm] List<IFormFile> files)
             => await _attachmentsService.UploadFiles(files);
         
         [HttpGet]
         [Route("{userId}")]
-        [AllowAnonymous]
         public async Task<FileStreamResult?> GetUserAvatarByUserId(Guid userId, bool download)
             => GetFile(await _attachmentsService.GetUserAvatarByUserIdAsync(userId), download);
 
         [HttpGet]
         [Route("{attachId}")]
-        [AllowAnonymous]
         public async Task<FileStreamResult> GetUserAvatarByAttachId(Guid attachId, bool download)
             => GetFile(await _attachmentsService.GetImageAttachByAttachId(attachId), download);
 
         [HttpGet]
         [Route("{postContentId}")]
-        [AllowAnonymous]
         public async Task<FileStreamResult> GetPostPictureByAttchId(Guid postContentId, bool download)
             => GetFile(await _attachmentsService.GetImageAttachByAttachId(postContentId), download);
 
         [HttpGet]
         [Route("{directPictureId}")]
-        [AllowAnonymous]
         public async Task<FileStreamResult> GetDirectPictureByAttchId(Guid directPictureId, bool download)
             => GetFile(await _attachmentsService.GetImageAttachByAttachId(directPictureId), download);
 
         [HttpGet]
         [Route("{directFileId}")]
-        [AllowAnonymous]
         public async Task<FileStreamResult> GetDirectFileByAttchId(Guid directFileId, bool download)
             => GetFile(await _attachmentsService.GetImageAttachByAttachId(directFileId), download);
 

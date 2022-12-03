@@ -12,6 +12,7 @@ namespace DDApp.API.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     [ApiExplorerSettings(GroupName = "Api")]
+    [Authorize]
     public class PostController : ControllerBase
     {
         private readonly PostService _postService;
@@ -31,32 +32,26 @@ namespace DDApp.API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public async Task<List<PostModel>?> GetSubscriptionPosts(int skip = 0, int take = 10)
             => await _postService.GetSubscriptionsPosts(GetCurrentUserId(), skip, take);
 
         [HttpPost]
-        [Authorize]
         public async Task CreatePost(CreatePostModel model)
             => await _postService.CreatePost(GetCurrentUserId(), model);
 
         [HttpPost]
-        [Authorize]
         public async Task ChangePostLikeState(Guid postId)
             => await _postService.ChangePostLikeState(postId, GetCurrentUserId());
 
         [HttpGet]
-        [Authorize]
         public async Task<PostModel> GetPost(Guid postId)
             => await _postService.GetPost(postId);
     
         [HttpGet]
-        [Authorize]
         public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)
             => await _postService.GetPosts(skip, take);
 
         [HttpDelete]
-        [Authorize]
         public async Task DeletePost(Guid postId)
             => await _postService.DeletePost(postId, GetCurrentUserId());
 

@@ -12,6 +12,7 @@ namespace DDApp.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     [ApiExplorerSettings(GroupName = "Api")]
     public class DirectController : ControllerBase
     {
@@ -29,12 +30,10 @@ namespace DDApp.API.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task CreateDirect(Guid userId)
             => await _directService.CreateDirectWithUser(GetCurrentUserGuid(), userId);
 
         [HttpPost]
-        [Authorize]
         public async Task CreateDirectMessage(CreateDirectMessageModel model)
             => await _directService.CreateDirectMessage(model, GetCurrentUserGuid());
 
@@ -44,12 +43,10 @@ namespace DDApp.API.Controllers
             => await _directService.GetUserDirects(GetCurrentUserGuid());
 
         [HttpGet]
-        [Authorize]
         public async Task<DirectRequestModel> GetUserDirect(Guid directId)
             => await _directService.GetUserDirect(directId, GetCurrentUserGuid());
 
         [HttpPost]
-        [Authorize]
         public async Task CreateDirectGroup(CreateDirectGroupModel model)
             => await _directService.CreateDirectGroup(model, GetCurrentUserGuid());
 
