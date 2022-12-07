@@ -55,6 +55,17 @@ namespace DDApp.API.Controllers
         public async Task DeletePost(Guid postId)
             => await _postService.DeletePost(postId, GetCurrentUserId());
 
+        [HttpGet]
+        public async Task<int> GetUserPostAmount()
+            => await _postService.GetUserPostAmount(GetCurrentUserId());
+
+        [HttpGet]
+        public async Task<List<PostModel>> GetCurrentUserPosts(int skip = 0, int take = 10)
+            => await _postService.GetCurrentUserPosts(skip, take, GetCurrentUserId());
+
+        [HttpGet]
+        public async Task<bool> GetPostLikeState(Guid postId)
+            => await _postService.GetPostLikeState(postId, GetCurrentUserId());
 
         private Guid GetCurrentUserId()
         {

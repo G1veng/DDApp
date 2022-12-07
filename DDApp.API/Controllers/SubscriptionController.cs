@@ -30,13 +30,20 @@ namespace DDApp.API.Controllers
             => await _subscriptionService.ChangeSubscriptionStateOnUserById(GetCurrentUserGuid(), userId);
 
         [HttpGet]
-        public async Task<List<SubscriberModel>?> GetSubscribers(int skip = 0, int take = 10)
+        public async Task<List<SubscriberModel>?> GetSubscribers(int take = 10, int skip = 0)
             => await _subscriptionService.GetSubscribers(GetCurrentUserGuid(), skip, take);
 
         [HttpGet]
-        public async Task<List<SubscriptionModel>?> GetSubscriptions(int skip = 0, int take = 10)
+        public async Task<List<SubscriptionModel>?> GetSubscriptions(int take = 10, int skip = 0)
             => await _subscriptionService.GetSubscriptions(GetCurrentUserGuid(), skip, take);
 
+        [HttpGet]
+        public async Task<int> GetUserSubscriptionsAmount()
+            => await _subscriptionService.GetUserSubscriptionsAmount(GetCurrentUserGuid());
+
+        [HttpGet]
+        public async Task<int> GetUserSubscribersAmount()
+            => await _subscriptionService.GetUserSubscribersAmount(GetCurrentUserGuid());
 
         private Guid GetCurrentUserGuid()
         {

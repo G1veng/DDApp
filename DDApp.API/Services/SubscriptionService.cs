@@ -94,6 +94,11 @@ namespace DDApp.API.Services
                 .ToListAsync();
         }
 
+        public async Task<int> GetUserSubscribersAmount(Guid userId)
+            => await _context.Subscriptions.CountAsync(x => x.UserSubscription.Id == userId && x.UserSubscription.IsActive == true);
+
+        public async Task<int> GetUserSubscriptionsAmount(Guid userId)
+            => await _context.Subscriptions.CountAsync(x => x.UserSubscriber.Id == userId && x.UserSubscriber.IsActive == true);
 
         private async Task<bool> CheckUserExistById(Guid userId)
         {

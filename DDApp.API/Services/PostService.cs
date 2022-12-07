@@ -111,6 +111,9 @@ namespace DDApp.API.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task<int> GetUserPostAmount(Guid userId)
+            =>  await _context.Posts.CountAsync(x => x.Author.Id == userId && x.IsActive == true);
+
         /// <summary>
         /// Возвращает посты, созданные подписками данного пользователя
         /// </summary>
@@ -147,6 +150,33 @@ namespace DDApp.API.Services
             });
 
             return res;
+        }
+
+        /// <summary>
+        /// Возвращает посты текущего пользвателя.
+        /// </summary>
+        public async Task<List<PostModel>> GetCurrentUserPosts(int skip, int take, Guid userId)
+        {
+            var posts = await _context.Posts
+                .AsNoTracking()
+                .Where(x => x.IsActive && x.Author.Id == userId)
+                .OrderByDescending(x => x.Created)
+                .Skip(skip)
+                .Take(take)
+                .Include(x => x.PostFiles)
+                .Include(x => x.Comments)
+                .Include(x => x.PostLikes)
+                .Include(x => x.Author)
+                .Include(x => x.Author).ThenInclude(x => x.Avatar)
+                .Select(x => _mapper.Map<Posts, PostModel>(x))
+                .ToListAsync();
+
+            if (posts == null || posts == default)
+            {
+                throw new PostNotFoundException();
+            }
+
+            return posts;
         }
 
         /// <summary>
@@ -197,6 +227,15 @@ namespace DDApp.API.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> GetPostLikeState(Guid postId, Guid userId)
+        {
+            if (await _context.PostLikes.FirstOrDefaultAsync(x => x.PostId == postId && x.UserId == userId) == null)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

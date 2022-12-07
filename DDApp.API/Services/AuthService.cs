@@ -16,7 +16,7 @@ namespace DDApp.API.Services
     public class AuthService
     {
         private readonly AuthConfig _config;
-        private readonly DDApp.DAL.DataContext _context;
+        private readonly DAL.DataContext _context;
 
         public AuthService(IOptions<AuthConfig> config, DAL.DataContext context)
         {
@@ -58,7 +58,7 @@ namespace DDApp.API.Services
 
         }
 
-        private async Task<DDApp.DAL.Entites.User> GetByCredential(string login, string password)
+        private async Task<User> GetByCredential(string login, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == login.ToLower());
             if (user == null || user.IsActive == false)
