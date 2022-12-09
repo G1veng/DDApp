@@ -34,6 +34,7 @@ namespace DDApp.API.Services
                 .Include(x => x.Author).ThenInclude(x => x.Avatar)
                 .Include(x => x.PostFiles)
                 .Include(x => x.Comments)
+                .Include(x => x.PostLikes)
                 .Where(x => x.IsActive)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
