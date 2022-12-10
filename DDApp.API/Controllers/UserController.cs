@@ -47,6 +47,11 @@ namespace DDApp.API.Controllers
         public async Task<UserWithLinkModel> GetCurrentUser() 
             => await _userService.GetUser(GetCurrentUserGuid());
 
+        [HttpGet]
+        [Authorize]
+        public async Task<UserWithLinkModel?> GetUser(string userId)
+            => await _userService.GetUser(Guid.Parse(userId));
+
 
         private Guid GetCurrentUserGuid()
         {

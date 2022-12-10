@@ -6,6 +6,7 @@ using DDApp.API.Services;
 using DDApp.Common.Consts;
 using DDApp.Common.Extensions;
 using DDApp.Common.Exceptions.Authorization;
+using DDApp.DAL.Entites;
 
 namespace DDApp.API.Controllers
 {

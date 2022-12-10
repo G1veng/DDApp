@@ -122,12 +122,20 @@ namespace DDApp.API.Services
         {
             var subscriptions = await _context.Subscriptions
                 .AsNoTracking()
-                .Where(x => x.SubscriberId == userId)
+                .Where(x => x.SubscriberId == userId && x.UserSubscription.IsActive)
                 .Select(x => _mapper.Map<Subscriptions, OnlySubscriptionModel>(x))
                 .ToListAsync();
 
+            List<Guid> subscriptionsGuids = new List<Guid>();
+            foreach(var sub in subscriptions)
+            {
+                subscriptionsGuids.Add(sub.SubscriptionId);
+            }
+
             var posts = await _context.Posts
                 .AsNoTracking()
+                .Where(x => x.IsActive && subscriptionsGuids.Contains(x.Author.Id))
+                .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(take)
                 .Include(x => x.PostFiles)
@@ -135,22 +143,10 @@ namespace DDApp.API.Services
                 .Include(x => x.PostLikes)
                 .Include(x => x.Author)
                 .Include(x => x.Author).ThenInclude(x => x.Avatar)
-                .Where(x => x.IsActive)
-                .OrderByDescending(x => x.Created)
                 .Select(x => _mapper.Map<Posts, PostModel>(x))
                 .ToListAsync();
 
-            var res = new List<PostModel>();
-
-            posts.ForEach(x =>
-            {
-                if(subscriptions.FirstOrDefault(y => y.SubscriptionId == x.AuthorId) != null)
-                {
-                    res.Add(x);
-                }
-            });
-
-            return res;
+            return posts;
         }
 
         /// <summary>

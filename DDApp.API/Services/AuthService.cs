@@ -139,7 +139,7 @@ namespace DDApp.API.Services
                 && Guid.TryParse(refreshTokenString, out var refreshTokenId))
             {
                 var session = await GetSessionByRefreshToken(refreshTokenId);
-                if (!session.IsActive)
+                if (!session.IsActive || session == default || session == null)
                 {
                     throw new AuthorizationException();
                 }
