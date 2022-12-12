@@ -7,5 +7,6 @@
         public DateTimeOffset Created { get; set; }
         public int Likes { get; set; } = 0;
         public Guid AuthorId { get; set; }
+        public Guid PostId { get; set; }
     }
 }

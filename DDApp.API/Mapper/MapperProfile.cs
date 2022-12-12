@@ -25,7 +25,8 @@ namespace DDApp.API
             CreateMap<Avatar, AttachModel>();
 
             CreateMap<PostComments, PostCommentModel>()
-                .ForMember(d => d.Likes, m => m.MapFrom(s => s.PostCommentLikes == null ? 0 : s.PostCommentLikes.Count));
+                .ForMember(d => d.Likes, m => m.MapFrom(s => s.PostCommentLikes == null ? 0 : s.PostCommentLikes.Count))
+                .ForMember(d => d.PostId, m => m.MapFrom(s => s.Post.Id));
 
             CreateMap<Posts, PostModel>()
                 .ForMember(d => d.CommentAmount, m => m.MapFrom(s => s.Comments == null ? 0 : s.Comments.Count))

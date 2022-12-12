@@ -48,10 +48,11 @@ namespace DDApp.API.Services
             }
         }
 
-        public async Task<List<UserWithLinkModel>?> GetUsers()
+        public async Task<List<UserWithLinkModel>?> GetUsers(Guid currentUserId)
             =>  await _context.Users
                 .AsNoTracking()
-                .Where(x => x.IsActive)
+                .Where(x => x.IsActive && x.Id != currentUserId)
+                .OrderByDescending(x => x.Name)
                 .Include(x => x.Avatar)
                 .Select(x => _mapper.Map<User, UserWithLinkModel>(x))
                 .ToListAsync();
