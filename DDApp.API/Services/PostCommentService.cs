@@ -26,7 +26,7 @@ namespace DDApp.API.Services
         /// <summary>
         /// Возвращает все комментарии к определенному посту.
         /// </summary>
-        public async Task<List<PostCommentModel>?> GetPostCommentsByPostId(Guid postId)
+        public async Task<List<PostCommentModel>?> GetPostCommentsByPostId(Guid postId, int take, int skip)
         {
             var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == postId);
 
@@ -39,6 +39,8 @@ namespace DDApp.API.Services
                 .AsNoTracking()
                 .Where(x => x.Post.Id == postId)
                 .OrderByDescending(x => x.Created)
+                .Skip(skip)
+                .Take(take)
                 .ProjectTo<PostCommentModel>(_mapper.ConfigurationProvider)
                 .ToListAsync();
         }
@@ -62,8 +64,9 @@ namespace DDApp.API.Services
 
             var comment = await _context.PostComments.AddAsync(new PostComments
             {
+                Id = model.Id,
                 Text = model.Text,
-                Created = DateTimeOffset.UtcNow,
+                Created = model.Created,
                 Author = user,
                 Post = post,
             });

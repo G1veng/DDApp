@@ -8,6 +8,7 @@ using DDApp.DAL.Entites;
 using Microsoft.EntityFrameworkCore;
 using DDApp.API.Models.Subscription;
 using DDApp.Common.Exceptions.Authorization;
+using FileNotFoundException = DDApp.Common.Exceptions.NotFound.FileNotFoundException;
 
 namespace DDApp.API.Services
 {
@@ -57,6 +58,11 @@ namespace DDApp.API.Services
             if (user == null || user.IsActive == false)
             {
                 throw new UserNotFoundException();
+            }
+
+            if(model.Files == null || model.Files.Count == 0)
+            {
+                throw new FileNotFoundException();
             }
             else
             {
