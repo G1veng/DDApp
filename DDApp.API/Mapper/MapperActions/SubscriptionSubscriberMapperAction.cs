@@ -8,7 +8,7 @@ namespace DDApp.API.Mapper.MapperActions
 
     public class SubscriptionSubscriberMapperAction : IMappingAction<Subscriptions, SubscriberModel>
     {
-        private readonly Func<Avatar?, string?>? _avatarLinkHelper;
+        private readonly Func<User?, string?>? _avatarLinkHelper;
 
         public SubscriptionSubscriberMapperAction(Services.LinkGeneratorService linkGeneratorService)
         {
@@ -17,7 +17,7 @@ namespace DDApp.API.Mapper.MapperActions
 
         public void Process(Subscriptions source, SubscriberModel destination, ResolutionContext context)
         {
-            destination.UserAvatar = _avatarLinkHelper == null ? null : _avatarLinkHelper(source.UserSubscriber.Avatar);
+            destination.UserAvatar = _avatarLinkHelper == null ? null : _avatarLinkHelper(source.UserSubscriber);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace DDApp.API.Mapper.MapperActions
 {
     public class UserAvatarMapperAction : IMappingAction<User, UserWithLinkModel>
     {
-        private readonly Func<Avatar?, string?>? _avatarLinkHelper;
+        private readonly Func<User?, string?>? _avatarLinkHelper;
 
         public UserAvatarMapperAction(Services.LinkGeneratorService linkGeneratorService)
         {
@@ -15,7 +15,7 @@ namespace DDApp.API.Mapper.MapperActions
 
         public void Process(User source, UserWithLinkModel destination, ResolutionContext context)
         {
-            destination.Avatar = _avatarLinkHelper == null ? null : _avatarLinkHelper(source.Avatar);
+            destination.Avatar = _avatarLinkHelper == null ? null : _avatarLinkHelper(source);
         }
     }
 }

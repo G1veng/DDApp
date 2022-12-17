@@ -21,7 +21,7 @@ namespace DDApp.API.Controllers
             Services.LinkGeneratorService linkGeneratorService)
         {
             linkGeneratorService.AvatarLinkGenerator =
-                x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByAttachId), new { attachId = x?.Id });
+                x => Url.ControllerAction<AttachController>(nameof(AttachController.GetUserAvatarByUserId), new { userId = x?.Id });
             _userService = userService;
             _attachmentsService = attachService;
         }
