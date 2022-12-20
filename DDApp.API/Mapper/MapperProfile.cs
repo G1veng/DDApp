@@ -15,7 +15,7 @@ namespace DDApp.API
         public MapperProfile()
         {
             CreateMap<CreateUserModel, User>()
-                .ForMember(d => d.Id, m => m.MapFrom(s => Guid.NewGuid()))
+                .ForMember(d => d.Id, m => m.MapFrom(s => s.Id ?? Guid.NewGuid()))
                 .ForMember(d => d.PasswordHash, m => m.MapFrom(s => HashHelper.GetHash(s.Password)))
                 .ForMember(d => d.BirthDate, m => m.MapFrom(s => s.BirthDate.UtcDateTime))
                 .ForMember(d => d.Created, m => m.MapFrom(s => DateTimeOffset.UtcNow));

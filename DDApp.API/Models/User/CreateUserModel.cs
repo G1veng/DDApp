@@ -4,6 +4,7 @@ namespace DDApp.API.Models
 {
     public class CreateUserModel
     {
+        public Guid? Id { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]
