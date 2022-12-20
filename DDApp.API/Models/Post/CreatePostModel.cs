@@ -9,5 +9,6 @@ namespace DDApp.API.Models
         public string Text { get; set; } = null!;
         [Required]
         public List<MetadataModel> Files { get; set; } = null!;
+        public DateTimeOffset? Created { get; set; }
     }
 }

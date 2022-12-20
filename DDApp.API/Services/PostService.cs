@@ -71,9 +71,9 @@ namespace DDApp.API.Services
                 {
                     Id = model.Id ?? new Guid(),
                     Author = user,
-                    Created = DateTimeOffset.UtcNow,
                     Text = model.Text,
-                });
+                    Created = model.Created ?? DateTimeOffset.UtcNow,
+                }) ;
 
                 if (model.Files != null)
                 {

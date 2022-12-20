@@ -76,7 +76,7 @@ namespace DDApp.API.Services
                 Size = file.Length,
             };
 
-            var newPath = Path.Combine(tempPath, meta.TempId.ToString());
+            var newPath = Path.Combine(tempPath, meta.TempId.ToString()!);
 
             var fileInfo = new FileInfo(newPath);
 
@@ -109,7 +109,7 @@ namespace DDApp.API.Services
 
         public string CopyImageFile(MetadataModel model)
         {
-            var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
+            var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()!));
             if (!tempFi.Exists)
             {
                 throw new Common.Exceptions.NotFound.FileNotFoundException();
@@ -119,7 +119,7 @@ namespace DDApp.API.Services
                 throw new NotImageFileException();
             }
 
-            var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString());
+            var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString()!);
 
             var destFi = new FileInfo(path);
             if (destFi.Directory != null && !destFi.Directory.Exists)
@@ -136,7 +136,7 @@ namespace DDApp.API.Services
 
         public string CopyImageVideoFile(MetadataModel model)
         {
-            var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()));
+            var tempFi = new FileInfo(Path.Combine(Path.GetTempPath(), model.TempId.ToString()!));
             if (!tempFi.Exists)
             {
                 throw new Common.Exceptions.NotFound.FileNotFoundException();
@@ -147,7 +147,7 @@ namespace DDApp.API.Services
                 throw new NotImageOrVideoException();
             }
 
-            var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString());
+            var path = Path.Combine(Directory.GetCurrentDirectory(), Common.Consts.FileDirectories.Attaches, model.TempId.ToString()!);
 
             var destFi = new FileInfo(path);
             if (destFi.Directory != null && !destFi.Directory.Exists)
