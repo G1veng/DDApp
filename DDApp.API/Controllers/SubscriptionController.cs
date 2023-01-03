@@ -38,12 +38,16 @@ namespace DDApp.API.Controllers
             => await _subscriptionService.GetSubscriptions(GetCurrentUserGuid(), skip, take);
 
         [HttpGet]
-        public async Task<int> GetUserSubscriptionsAmount()
-            => await _subscriptionService.GetUserSubscriptionsAmount(GetCurrentUserGuid());
+        public async Task<int> GetUserSubscriptionsAmount(Guid? userId = null)
+            => await _subscriptionService.GetUserSubscriptionsAmount(userId ?? GetCurrentUserGuid());
 
         [HttpGet]
-        public async Task<int> GetUserSubscribersAmount()
-            => await _subscriptionService.GetUserSubscribersAmount(GetCurrentUserGuid());
+        public async Task<int> GetUserSubscribersAmount(Guid? userId = null)
+            => await _subscriptionService.GetUserSubscribersAmount(userId ?? GetCurrentUserGuid());
+
+        [HttpGet]
+        public async Task<bool> IsSubscribedOn(Guid userId) 
+            => await _subscriptionService.IsSubscribedOn(userId, GetCurrentUserGuid());
 
         private Guid GetCurrentUserGuid()
         {

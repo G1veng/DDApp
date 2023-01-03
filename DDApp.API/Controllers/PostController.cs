@@ -33,8 +33,8 @@ namespace DDApp.API.Controllers
         }
 
         [HttpGet]
-        public async Task<List<PostModel>?> GetSubscriptionPosts(int skip = 0, int take = 10)
-            => await _postService.GetSubscriptionsPosts(GetCurrentUserId(), skip, take);
+        public async Task<List<PostModel>?> GetSubscriptionPosts(DateTimeOffset? lastPostCreated = null, int skip = 0, int take = 10)
+            => await _postService.GetSubscriptionsPosts(GetCurrentUserId(), skip, take, lastPostCreated);
 
         [HttpPost]
         public async Task CreatePost(CreatePostModel model)
@@ -57,12 +57,12 @@ namespace DDApp.API.Controllers
             => await _postService.DeletePost(postId, GetCurrentUserId());
 
         [HttpGet]
-        public async Task<int> GetUserPostAmount()
-            => await _postService.GetUserPostAmount(GetCurrentUserId());
+        public async Task<int> GetUserPostAmount(Guid? userId = null)
+            => await _postService.GetUserPostAmount(userId ?? GetCurrentUserId());
 
         [HttpGet]
-        public async Task<List<PostModel>> GetCurrentUserPosts(int skip = 0, int take = 10)
-            => await _postService.GetCurrentUserPosts(skip, take, GetCurrentUserId());
+        public async Task<List<PostModel>> GetCurrentUserPosts(DateTimeOffset? lastPostCreated = null, int skip = 0, int take = 10)
+            => await _postService.GetCurrentUserPosts(lastPostCreated, skip, take, GetCurrentUserId());
 
         [HttpGet]
         public async Task<bool> GetPostLikeState(Guid postId)

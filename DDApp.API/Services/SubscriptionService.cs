@@ -100,6 +100,28 @@ namespace DDApp.API.Services
         public async Task<int> GetUserSubscriptionsAmount(Guid userId)
             => await _context.Subscriptions.CountAsync(x => x.UserSubscriber.Id == userId && x.UserSubscriber.IsActive == true);
 
+        public async Task<bool> IsSubscribedOn(Guid userId, Guid currentUserId)
+        {
+            if (!(await CheckUserExistById(userId)) || !(await CheckUserExistById(currentUserId)))
+            {
+                throw new UserNotFoundException();
+            }
+
+            var res = await _context.Subscriptions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.SubscriptionId == userId 
+                    && x.SubscriberId == currentUserId);
+
+            if (res == null) 
+            { 
+                return false; 
+            }
+            else 
+            {
+                return true;
+            }
+        }
+
         private async Task<bool> CheckUserExistById(Guid userId)
         {
             var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId);

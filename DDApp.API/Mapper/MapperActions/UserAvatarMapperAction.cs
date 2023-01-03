@@ -15,7 +15,7 @@ namespace DDApp.API.Mapper.MapperActions
 
         public void Process(User source, UserWithLinkModel destination, ResolutionContext context)
         {
-            destination.Avatar = _avatarLinkHelper == null ? null : _avatarLinkHelper(source);
+            destination.Avatar = source.Avatar == null ? null : _avatarLinkHelper == null ? null : _avatarLinkHelper(source);
         }
     }
 }

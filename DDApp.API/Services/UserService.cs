@@ -48,11 +48,13 @@ namespace DDApp.API.Services
             }
         }
 
-        public async Task<List<UserWithLinkModel>?> GetUsers(Guid currentUserId)
+        public async Task<List<UserWithLinkModel>?> GetUsers(int skip, int take, Guid currentUserId)
             =>  await _context.Users
                 .AsNoTracking()
                 .Where(x => x.IsActive && x.Id != currentUserId)
                 .OrderByDescending(x => x.Name)
+                .Skip(skip)
+                .Take(take)
                 .Include(x => x.Avatar)
                 .Select(x => _mapper.Map<User, UserWithLinkModel>(x))
                 .ToListAsync();
@@ -78,6 +80,19 @@ namespace DDApp.API.Services
             user.Avatar = avatar;
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task SetPushToken(Guid userId, string? token = null)
+        {
+            var user = await GetUserById(userId);
+            user.PushToken = token;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<string?> GetPushToken(Guid userId)
+        {
+            var user = await GetUserById(userId);
+            return user.PushToken;
         }
 
 

@@ -31,8 +31,8 @@ namespace DDApp.API.Controllers
             => await _postCommentService.ChangePostCommentLikeState(commentId, GetCurrentUserId());
 
         [HttpGet]
-        public async Task<List<PostCommentModel>?> GetPostComments(Guid postId, int take = 10, int skip = 0)
-            => await _postCommentService.GetPostCommentsByPostId(postId, take, skip);
+        public async Task<List<PostCommentModel>?> GetPostComments(Guid postId, int take = 10, int skip = 0, DateTimeOffset? lastPostCreated = null)
+            => await _postCommentService.GetPostCommentsByPostId(lastPostCreated, postId, take, skip);
 
         [HttpDelete]
         public async Task DeletePostComment(Guid postCommentId)

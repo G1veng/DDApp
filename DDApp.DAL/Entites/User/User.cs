@@ -9,6 +9,7 @@
         public DateTimeOffset BirthDate { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTimeOffset Created { get; set; }
+        public string? PushToken { get; set; }
 
         public virtual Avatar? Avatar { get; set; }
         public virtual ICollection<UserSession>? Session { get; set; }

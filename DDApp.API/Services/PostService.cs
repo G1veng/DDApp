@@ -126,7 +126,7 @@ namespace DDApp.API.Services
         /// <summary>
         /// Возвращает посты, созданные подписками данного пользователя
         /// </summary>
-        public async Task<List<PostModel>?> GetSubscriptionsPosts(Guid userId, int skip, int take)
+        public async Task<List<PostModel>?> GetSubscriptionsPosts(Guid userId, int skip, int take, DateTimeOffset? lastPostCreated)
         {
             var subscriptions = await _context.Subscriptions
                 .AsNoTracking()
@@ -142,7 +142,7 @@ namespace DDApp.API.Services
 
             var posts = await _context.Posts
                 .AsNoTracking()
-                .Where(x => x.IsActive && subscriptionsGuids.Contains(x.Author.Id))
+                .Where(x => x.IsActive && subscriptionsGuids.Contains(x.Author.Id) && (lastPostCreated == null ? true : x.Created < lastPostCreated))
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(take)
@@ -160,11 +160,11 @@ namespace DDApp.API.Services
         /// <summary>
         /// Возвращает посты текущего пользвателя.
         /// </summary>
-        public async Task<List<PostModel>> GetCurrentUserPosts(int skip, int take, Guid userId)
+        public async Task<List<PostModel>> GetCurrentUserPosts(DateTimeOffset? lastPostCreated, int skip, int take, Guid userId)
         {
             var posts = await _context.Posts
                 .AsNoTracking()
-                .Where(x => x.IsActive && x.Author.Id == userId)
+                .Where(x => x.IsActive && x.Author.Id == userId && (lastPostCreated == null ? true : x.Created > lastPostCreated))
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(take)

@@ -1,4 +1,5 @@
 using DDApp.API;
+using DDApp.API.Configs;
 using DDApp.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +13,14 @@ internal class Program {
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-        var authSection = builder.Configuration.GetSection(DDApp.API.Configs.AuthConfig.Position);
-        var authConfig = authSection.Get<DDApp.API.Configs.AuthConfig>();
+        var authSection = builder.Configuration.GetSection(AuthConfig.Position);
+        var authConfig = authSection.Get<AuthConfig>();
+        var pushConfig = builder.Configuration.GetSection(PushConfig.Position);
 
 
-        builder.Services.Configure<DDApp.API.Configs.AuthConfig>(authSection);
+        builder.Services.Configure<AuthConfig>(authSection);
+        builder.Services.Configure<PushConfig>(pushConfig);
+
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -69,6 +73,7 @@ internal class Program {
         builder.Services.AddScoped<DDApp.API.Services.SubscriptionService>();
         builder.Services.AddScoped<DDApp.API.Services.PostCommentService>();
         builder.Services.AddScoped<DDApp.API.Services.DirectService>();
+        builder.Services.AddScoped<DDApp.API.Services.GooglePushService>();
 
         builder.Services.AddAuthentication(o =>
         {
