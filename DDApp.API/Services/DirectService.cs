@@ -88,9 +88,17 @@ namespace DDApp.API.Services
         /// <summary>
         /// Возвращает дерект пользователя
         /// </summary>
-        public async Task<DirectRequestModel> GetUserDirect(Guid directId, Guid senderId)
+        public async Task<DirectModel?> GetUserDirect(Guid directId, Guid senderId)
         {
-            if((await _context.Directs.AsNoTracking().FirstOrDefaultAsync(x => x.DirectId == directId)) == null)
+            var direct = await _context.Directs
+                .AsNoTracking()
+                .Include(x => x.DirectMembers)
+                .Include(x => x.DirectMembers).ThenInclude(x => x.User)
+                .Include(x => x.DirectMembers).ThenInclude(x => x.User).ThenInclude(x => x.Avatar)
+                .Include(x => x.DirectImage)
+                .FirstOrDefaultAsync(x => x.DirectId == directId);
+
+            if (direct == null)
             {
                 throw new DirectNotFoundException();
             }
@@ -100,27 +108,36 @@ namespace DDApp.API.Services
                 throw new UserNotFoundException();
             }
 
-            var res = new DirectRequestModel
-            {
-                DirectId = directId,
-                RecipientId = (await _context.DirectMembers.AsNoTracking().Include(y => y.User).FirstAsync(y => y.DirectId == directId && y.UserId != senderId)).UserId,
-            };
+            return _mapper.Map<DirectModel>(direct);
+        }
 
-            res.DirectMessages = await _context.DirectMessages
+        public async Task<List<DirectMessageModel>?> GetDirectMessage(Guid directId, int skip, int take, DateTimeOffset? lastDirectMessageCreated = null)
+        {
+            var direct = (await _context.Directs.AsNoTracking().FirstOrDefaultAsync(x => x.DirectId == directId));
+
+            if (direct == null)
+            {
+                throw new DirectNotFoundException();
+            }
+
+            return await _context.DirectMessages
                 .AsNoTracking()
+                .Where(x => x.DirectId == directId && (lastDirectMessageCreated == null ? true : x.Sended > lastDirectMessageCreated))
+                .Skip(skip)
+                .Take(take)
+                .Include(x => x.Direct)
                 .Include(x => x.DirectFiles)
                 .Include(x => x.User)
-                .Where(x => x.DirectId == directId)
                 .Select(x => _mapper.Map<DirectMessages, DirectMessageModel>(x))
                 .ToListAsync();
 
-            return res;
+
         }
 
         /// <summary>
         /// Возвращает список директов пользователя
         /// </summary>
-        public async Task<List<DirectModel>?> GetUserDirects(Guid userId)
+        public async Task<List<DirectModel>?> GetUserDirects(Guid userId, int take, int skip)
         {
             var directs = await _context.Directs
                 .AsNoTracking()
@@ -129,6 +146,9 @@ namespace DDApp.API.Services
                 .Include(x => x.DirectMembers).ThenInclude(x => x.User)
                 .Include(x => x.DirectMembers).ThenInclude(x => x.User).ThenInclude(x => x.Avatar)
                 .Where(x => x.DirectMembers.Contains(new DirectMembers { DirectId = x.DirectId, UserId = userId }))
+                .OrderByDescending(x => x.DirectTitle)
+                .Skip(skip)
+                .Take(take)
                 .Select(x => _mapper.Map<Direct, DirectModel>(x))
                 .ToListAsync();
 

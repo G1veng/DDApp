@@ -38,13 +38,19 @@ namespace DDApp.API.Controllers
             => await _directService.CreateDirectMessage(model, GetCurrentUserGuid());
 
         [HttpGet]
-        [Authorize]
-        public async Task<List<DirectModel>?> GetUserDirects()
-            => await _directService.GetUserDirects(GetCurrentUserGuid());
+        public async Task<List<DirectModel>?> GetUserDirects(int skip = 0, int take = 10)
+            => await _directService.GetUserDirects(GetCurrentUserGuid(), take, skip);
 
         [HttpGet]
-        public async Task<DirectRequestModel> GetUserDirect(Guid directId)
+        public async Task<DirectModel?> GetUserDirect(Guid directId)
             => await _directService.GetUserDirect(directId, GetCurrentUserGuid());
+
+        [HttpGet]
+        public async Task<List<DirectMessageModel>?> GetDirectMessage(Guid directId, int skip = 0,
+            int take = 10,
+            DateTimeOffset? lastDirectMessageCreated = null)
+            => await _directService.GetDirectMessage(directId, skip, take, lastDirectMessageCreated);
+
 
         [HttpPost]
         public async Task CreateDirectGroup(CreateDirectGroupModel model)
