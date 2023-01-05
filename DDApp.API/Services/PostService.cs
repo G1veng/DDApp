@@ -187,10 +187,16 @@ namespace DDApp.API.Services
         /// <summary>
         /// Возвращает все посты.
         /// </summary>
-        public async Task<List<PostModel>> GetPosts(int skip, int take) {
+        public async Task<List<PostModel>> GetPosts(DateTimeOffset? lastPostCreated, int skip, int take, Guid userId) {
+            var user = await _context.Users.AsNoTracking().Include(x => x.Posts).FirstOrDefaultAsync(x => x.Id == userId);
+            if(user == default || user == null || user.IsActive == false)
+            {
+                throw new UserNotFoundException();
+            }
+
             var posts = await _context.Posts
                 .AsNoTracking()
-                .Where(x => x.IsActive)
+                .Where(x => x.IsActive && x.Author.Id == userId && (lastPostCreated == null ? true : x.Created > lastPostCreated))
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(take)

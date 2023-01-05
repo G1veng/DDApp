@@ -49,8 +49,8 @@ namespace DDApp.API.Controllers
             => await _postService.GetPost(postId);
     
         [HttpGet]
-        public async Task<List<PostModel>> GetPosts(int skip = 0, int take = 10)
-            => await _postService.GetPosts(skip, take);
+        public async Task<List<PostModel>> GetPosts(Guid userId, int skip = 0, int take = 10, DateTimeOffset? lastPostCreated = null)
+            => await _postService.GetPosts(lastPostCreated, skip, take, userId);
 
         [HttpDelete]
         public async Task DeletePost(Guid postId)
