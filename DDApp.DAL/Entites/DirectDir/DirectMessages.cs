@@ -11,7 +11,7 @@ namespace DDApp.DAL.Entites
         public Guid DirectMessageId { get; set; }
         public Guid DirectId { get; set; }
         public string? DirectMessage { get; set; }
-        public DateTimeOffset Sended { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset Sended { get; set; }
         public Guid SenderId { get; set; }
 
         public virtual Direct Direct { get; set; } = null!;

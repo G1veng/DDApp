@@ -2,6 +2,7 @@ using DDApp.API;
 using DDApp.API.Configs;
 using DDApp.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -22,7 +23,10 @@ internal class Program {
         builder.Services.Configure<PushConfig>(pushConfig);
 
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(options =>
+        {
+            options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
+        });
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>

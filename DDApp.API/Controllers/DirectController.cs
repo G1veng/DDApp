@@ -30,12 +30,16 @@ namespace DDApp.API.Controllers
         }
 
         [HttpPost]
-        public async Task CreateDirect(Guid userId)
-            => await _directService.CreateDirectWithUser(GetCurrentUserGuid(), userId);
+        public async Task CreateDirect(CreateDirectModel model)
+            => await _directService.CreateDirectWithUser(GetCurrentUserGuid(), model);
 
         [HttpPost]
         public async Task CreateDirectMessage(CreateDirectMessageModel model)
             => await _directService.CreateDirectMessage(model, GetCurrentUserGuid());
+
+        [HttpGet]
+        public async Task<DirectModel?> GetDirectWithUser(Guid userId)
+            => await _directService.GetDirectWithUser(GetCurrentUserGuid(), userId);
 
         [HttpGet]
         public async Task<List<DirectModel>?> GetUserDirects(int skip = 0, int take = 10)
