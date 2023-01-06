@@ -119,7 +119,11 @@ namespace DDApp.API.Services
 
         public async Task<List<DirectMessageModel>?> GetDirectMessage(Guid currentUser, Guid directId, int skip, int take, DateTimeOffset? lastDirectMessageCreated = null)
         {
-            var direct = (await _context.Directs.AsNoTracking().FirstOrDefaultAsync(x => x.DirectId == directId));
+            var direct = (await _context.Directs
+                .AsNoTracking()
+                .Include(x => x.DirectMembers)
+                .Include(x => x.DirectMembers).ThenInclude(x => x.User)
+                .FirstOrDefaultAsync(x => x.DirectId == directId));
 
             if (direct == null)
             {
