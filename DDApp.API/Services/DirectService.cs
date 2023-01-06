@@ -9,6 +9,7 @@ using DDApp.DAL.Entites;
 using DDApp.DAL.Entites.DirectDir;
 using Microsoft.EntityFrameworkCore;
 using DDApp.Common.Consts;
+using DDApp.Common.Exceptions.Authorization.SpecificExceptions;
 
 namespace DDApp.API.Services
 {
@@ -108,10 +109,15 @@ namespace DDApp.API.Services
                 throw new UserNotFoundException();
             }
 
+            if(!direct.DirectMembers.Contains(new DirectMembers { DirectId = directId, UserId = senderId }))
+            {
+                throw new AccessAuthorizationException();
+            }
+
             return _mapper.Map<DirectModel>(direct);
         }
 
-        public async Task<List<DirectMessageModel>?> GetDirectMessage(Guid directId, int skip, int take, DateTimeOffset? lastDirectMessageCreated = null)
+        public async Task<List<DirectMessageModel>?> GetDirectMessage(Guid currentUser, Guid directId, int skip, int take, DateTimeOffset? lastDirectMessageCreated = null)
         {
             var direct = (await _context.Directs.AsNoTracking().FirstOrDefaultAsync(x => x.DirectId == directId));
 
@@ -120,9 +126,15 @@ namespace DDApp.API.Services
                 throw new DirectNotFoundException();
             }
 
+            if (!direct.DirectMembers.Contains(new DirectMembers { DirectId = directId, UserId = currentUser }))
+            {
+                throw new AccessAuthorizationException();
+            }
+
             return await _context.DirectMessages
                 .AsNoTracking()
                 .Where(x => x.DirectId == directId && (lastDirectMessageCreated == null ? true : x.Sended > lastDirectMessageCreated))
+                .OrderByDescending(x => x.Sended)
                 .Skip(skip)
                 .Take(take)
                 .Include(x => x.Direct)

@@ -50,8 +50,7 @@ namespace DDApp.API
             CreateMap<Direct, DirectModel>()
                 .BeforeMap<DirectModelImageMapperAction>();
 
-            CreateMap<DirectMessages, DirectMessageModel>()
-                .ForMember(x => x.SenderName, m => m.MapFrom(s => s.User.Name));
+            CreateMap<DirectMessages, DirectMessageModel>();
 
             CreateMap<DirectFiles, ExternalDirectFileLinkModel>()
                 .AfterMap<DirectMessageFileMapperAction>();

@@ -49,7 +49,7 @@ namespace DDApp.API.Controllers
         public async Task<List<DirectMessageModel>?> GetDirectMessage(Guid directId, int skip = 0,
             int take = 10,
             DateTimeOffset? lastDirectMessageCreated = null)
-            => await _directService.GetDirectMessage(directId, skip, take, lastDirectMessageCreated);
+            => await _directService.GetDirectMessage(GetCurrentUserGuid(), directId, skip, take, lastDirectMessageCreated);
 
 
         [HttpPost]
