@@ -11,7 +11,8 @@ namespace DDApp.API.Services
         private Func<Guid?, string?>? _postAuthorAvatarLinkGenerator;
         private Func<Attach?, string?>? _directImageLinkGenerator;
         private Func<DirectFiles?, string?>? _directFilesLinkGenerator;
-        public Func<DirectImages?, string?>? _directGroupImageLinkGenerator;
+        private Func<DirectImages?, string?>? _directGroupImageLinkGenerator;
+        private Func<Avatar?, string?>? _avatarDirectImageLinkGenerator;
 
         public Func<User?, string?>? AvatarLinkGenerator { get => _avatarLinkGenerator; set => _avatarLinkGenerator = value; }
         public Func<PostFiles?, string?>? PostFileLinkGenerator { get => _postFileLinkGenerator; set => _postFileLinkGenerator = value; }
@@ -19,6 +20,7 @@ namespace DDApp.API.Services
         public Func<Attach?, string?>? DirectImageLinkGenerator { get => _directImageLinkGenerator; set => _directImageLinkGenerator = value; }
         public Func<DirectFiles?, string?>? DirectFilesLinkGenerator { get => _directFilesLinkGenerator; set => _directFilesLinkGenerator = value; }
         public Func<DirectImages?, string?>? DirectGroupImageLinkGenerator { get => _directGroupImageLinkGenerator; set => _directGroupImageLinkGenerator = value; }
+        public Func<Avatar?, string?>? AvatarDirectImageLinkGenerator { get => _avatarDirectImageLinkGenerator; set => _avatarDirectImageLinkGenerator = value; }
 
         public LinkGeneratorService()
         {

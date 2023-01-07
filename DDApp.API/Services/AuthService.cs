@@ -83,7 +83,7 @@ namespace DDApp.API.Services
                 User = user,
                 RefreshToken = Guid.NewGuid(),
                 Created = DateTime.UtcNow,
-                Id = new Guid()
+                Id = Guid.NewGuid()
             });
 
             await _context.SaveChangesAsync();

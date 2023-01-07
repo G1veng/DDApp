@@ -69,7 +69,7 @@ namespace DDApp.API.Services
                 var filePath = string.Empty;
                 var post = await _context.Posts.AddAsync(new Posts
                 {
-                    Id = model.Id ?? new Guid(),
+                    Id = model.Id ?? Guid.NewGuid(),
                     Author = user,
                     Text = model.Text,
                     Created = model.Created ?? DateTimeOffset.UtcNow,
@@ -83,7 +83,7 @@ namespace DDApp.API.Services
 
                         var postFile = await _context.PostFiles.AddAsync(new PostFiles
                         {
-                            Id = meta.TempId ?? new Guid(),
+                            Id = meta.TempId ?? Guid.NewGuid(),
                             PostId = post.Entity.Id,
                             Name = meta.Name,
                             Author = user,

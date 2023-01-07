@@ -18,12 +18,16 @@ namespace DDApp.API.Services
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly AttachService _attachService;
+        private readonly GooglePushService _pushService;
+        private readonly AttachService _attchService;
 
-        public DirectService(DataContext context, IMapper mapper, AttachService attachService)
+        public DirectService(DataContext context, IMapper mapper, AttachService attachService, GooglePushService pushService, AttachService attchService)
         {
             _context = context;
             _mapper = mapper;
             _attachService = attachService;
+            _pushService = pushService;
+            _attchService = attchService;
         }
 
         /// <summary>
@@ -53,7 +57,7 @@ namespace DDApp.API.Services
 
             var direct = (await _context.Directs.AddAsync(new Direct
             {
-                DirectId = model.Id ?? new Guid(),
+                DirectId = model.Id ?? Guid.NewGuid(),
                 DirectTitle = model.Title,
                 IsDirectGroup = true,
                 Created = model.Created ?? DateTimeOffset.UtcNow,
@@ -170,29 +174,25 @@ namespace DDApp.API.Services
                 return null;
             }
 
-            var d = _mapper.Map<DirectModel>(direct);
-
-            if (d.DirectMembers.Count == 2)
+            var member = await _context.DirectMembers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.DirectId == direct.DirectId && x.UserId == userId);
+            if (member != null)
             {
-                var recipient = d.DirectMembers.First(m => m.DirectMember != userId).DirectMember;
-
-                var userAvatar = _context.Avatars.AsNoTracking().FirstOrDefault(u => u.UserId == recipient);
-
-                if (userAvatar != null)
+                var avatar = await _context.Avatars
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.UserId == member.UserId);
+                if (avatar != null)
                 {
-                    d.DirectImage = _mapper.Map<DirectImages, DirectImageModel>(new DirectImages
-                    {
-                        DirectId = d.DirectId,
-                        Id = userAvatar.Id,
-                        Size = userAvatar.Size,
-                        MimeType = userAvatar.MimeType,
-                        FilePath = userAvatar.FilePath,
-                        Name = userAvatar.Name,
-                    });
+                    var res = _mapper.Map<Avatar, DirectImageModel>(avatar);
+                    var dirModel = _mapper.Map<DirectModel>(direct);
+                    dirModel.DirectImage = res;
+
+                    return dirModel;
                 }
             }
 
-            return d;
+            return _mapper.Map<DirectModel>(direct);
         }
 
         /// <summary>
@@ -213,28 +213,24 @@ namespace DDApp.API.Services
                 .Select(x => _mapper.Map<Direct, DirectModel>(x))
                 .ToListAsync();
 
-            directs.ForEach(d =>
+
+            for (int i = 0; i < directs.Count; i++)
             {
-                if(d.DirectMembers.Count == 2)
+                var member = await _context.DirectMembers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.DirectId == directs[i].DirectId && x.UserId != userId);
+                if(member != null)
                 {
-                    var recipient = d.DirectMembers.First(m => m.DirectMember != userId).DirectMember;
-
-                    var userAvatar = _context.Avatars.AsNoTracking().FirstOrDefault(u => u.UserId == recipient);
-
-                    if (userAvatar != null)
+                    var avatar = await _context.Avatars
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.UserId == member.UserId);
+                    if(avatar != null)
                     {
-                        d.DirectImage = _mapper.Map<DirectImages, DirectImageModel>(new DirectImages
-                        {
-                            DirectId = d.DirectId,
-                            Id = userAvatar.Id,
-                            Size = userAvatar.Size,
-                            MimeType = userAvatar.MimeType,
-                            FilePath = userAvatar.FilePath,
-                            Name = userAvatar.Name,
-                        });
+                        var res = _mapper.Map<Avatar, DirectImageModel>(avatar);
+                        directs[i].DirectImage = res;
                     }
                 }
-            });
+            }
 
             return directs;
         }
@@ -260,21 +256,64 @@ namespace DDApp.API.Services
                 throw new DirectExistsForbiddenException();
             }
 
-            var direct = await _context.Directs.AddAsync(new Direct
+            
+            var directId = model.Id ?? Guid.NewGuid();
+            var userAvatar = await _context.Avatars
+                .AsNoTracking()
+                .Include(x => x.Author)
+                .FirstOrDefaultAsync(x => x.UserId == model.UserId);
+
+            DirectImages? directImage;
+            if (userAvatar != null)
             {
-                DirectId = model.Id ?? new Guid(),
-                DirectTitle = DefaultGroupTitle.Title,
-            });
+                var attach = await _context.Attaches.AddAsync(new Attach
+                {
+                    Author = await _context.Users.FirstAsync(x => x.Id == currentUserId),
+                    FilePath = userAvatar.FilePath,
+                    Id = Guid.NewGuid(),
+                    MimeType = userAvatar.MimeType,
+                    Name = userAvatar.Name,
+                    Size = userAvatar.Size,
+                });
+
+
+                directImage = new DirectImages
+                {
+                    Author = attach.Entity.Author,
+                    DirectId = directId,
+                    FilePath = attach.Entity.FilePath,
+                    Id = Guid.NewGuid(),
+                    MimeType = attach.Entity.MimeType,
+                    Name = attach.Entity.Name,
+                    Size = attach.Entity.Size,
+                };
+
+                await _context.Directs.AddAsync(new Direct
+                {
+                    DirectId = directId,
+                    DirectTitle = model.Title ?? (await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == model.UserId))!.Name,
+                    DirectImage = directImage,
+                });
+            }
+            else
+            {
+                var direct = await _context.Directs.AddAsync(new Direct
+                {
+                    DirectId = directId,
+                    DirectTitle = model.Title ?? (await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == model.UserId))!.Name,
+                });
+            }
 
             _context.DirectMembers.Add(new DirectMembers
             {
-                DirectId = direct.Entity.DirectId,
+                DirectId = directId,
                 UserId = currentUserId,
             });
 
+
             _context.DirectMembers.Add(new DirectMembers
             {
-                DirectId = direct.Entity.DirectId,
+                DirectId = directId,
                 UserId = model.UserId,
             });
 
@@ -293,7 +332,7 @@ namespace DDApp.API.Services
 
             var message = (await _context.DirectMessages.AddAsync(new DirectMessages
             {
-                DirectMessageId = model.DirectMessageId ?? new Guid(),
+                DirectMessageId = model.DirectMessageId ?? Guid.NewGuid(),
                 DirectId = model.DirectId,
                 DirectMessage = model.Message,
                 SenderId = sender,

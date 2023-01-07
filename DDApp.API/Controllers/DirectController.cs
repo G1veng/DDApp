@@ -27,6 +27,8 @@ namespace DDApp.API.Controllers
                 x => Url.ControllerAction<AttachController>(nameof(AttachController.GetDirectFileByAttchId), new { directFileId = x?.Id });
             linkGeneratorService.DirectGroupImageLinkGenerator =
                 x => Url.ControllerAction<AttachController>(nameof(AttachController.GetDirectPictureByAttchId), new { directPictureId = x?.Id});
+            linkGeneratorService.AvatarDirectImageLinkGenerator =
+                x => Url.ControllerAction<AttachController>(nameof(AttachController.GetDirectPictureByAttchId), new { directPictureId = x?.Id });
         }
 
         [HttpPost]

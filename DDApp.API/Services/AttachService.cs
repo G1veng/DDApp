@@ -54,7 +54,7 @@ namespace DDApp.API.Services
 
         public async Task<Attach> GetUserAvatarByUserIdAsync(Guid userId)
         {
-            var avatar = await _context.Avatars.FirstOrDefaultAsync(x => x.UserId == userId);
+            var avatar = await _context.Avatars.AsNoTracking().Include(x => x.Author).FirstOrDefaultAsync(x => x.UserId == userId);
 
             if(avatar == null)
             {

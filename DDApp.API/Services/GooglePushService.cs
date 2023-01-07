@@ -79,7 +79,10 @@ namespace DDApp.API.Services
             var jcustomData = new JObject();
             if (customData != null)
             {
-                jcustomData = JObject.FromObject(customData);
+                foreach(var data in customData)
+                {
+                    jcustomData[data.Key] = data.Value.ToString();
+                }
             }
             jData["data"] = jcustomData;
             return jData;

@@ -79,7 +79,11 @@ namespace DDApp.API.Services
         /// </summary>
         public async Task DeletePostComment(Guid postCommentId, Guid userId)
         {
-            var postComment = await _context.PostComments.Include(x => x.Author).Include(x => x.Post).ThenInclude(x => x.Author).FirstOrDefaultAsync(x => x.Id == postCommentId);
+            var postComment = await _context.PostComments
+                .Include(x => x.Author)
+                .Include(x => x.Post)
+                .ThenInclude(x => x.Author)
+                .FirstOrDefaultAsync(x => x.Id == postCommentId);
 
             if(postComment == null || postComment == default || !postComment.IsActive)
             {

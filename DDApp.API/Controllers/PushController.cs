@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DDApp.API.Controllers
 {
     [Route("api/[controller]/[action]")]
+    [ApiExplorerSettings(GroupName = "Api")]
     [ApiController]
     [Authorize]
     public class PushController : ControllerBase

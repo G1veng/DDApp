@@ -24,6 +24,12 @@ namespace DDApp.API
 
             CreateMap<Avatar, AttachModel>();
 
+            CreateMap<Avatar, DirectImageModel>()
+                .ForMember(d => d.Id, m => m.MapFrom(s => s.Id))
+                .AfterMap<AvatarDirectImageMapperAction>();
+
+            CreateMap<Attach, DirectImages>();
+
             CreateMap<PostComments, PostCommentModel>()
                 .ForMember(d => d.Likes, m => m.MapFrom(s => s.PostCommentLikes == null ? 0 : s.PostCommentLikes.Count))
                 .ForMember(d => d.PostId, m => m.MapFrom(s => s.Post.Id));
@@ -47,8 +53,7 @@ namespace DDApp.API
                 .ForMember(d => d.UserName, m => m.MapFrom(s => s.UserSubscriber.Name))
                 .AfterMap<SubscriptionSubscriberMapperAction>();
 
-            CreateMap<Direct, DirectModel>()
-                .BeforeMap<DirectModelImageMapperAction>();
+            CreateMap<Direct, DirectModel>();
 
             CreateMap<DirectMessages, DirectMessageModel>();
 
